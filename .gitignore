@@ -1,0 +1,10 @@
+# Arquivos do Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.sln.docstates
+
+# Arquivos de publicação e temporários
+publish/
