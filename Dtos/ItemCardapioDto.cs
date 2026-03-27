@@ -20,6 +20,7 @@ namespace A1_order_system.Dtos
         string Descricao,
         decimal PrecoBase,
         Periodo Periodo,
+        bool IsSugestaoChefe,
         decimal? PrecoComDesconto,
         List<String> Ingredientes
         )
