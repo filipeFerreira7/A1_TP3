@@ -10,9 +10,8 @@
     public record ReservaResponseDto(
         long Id,
         DateTime Data,
-        DateTime Horario,
         string NomeDoCliente,
-        int NumeroMesa,
-        string CodigoConfirmacao);
+        int NumeroMesa
+        );
 
 }
