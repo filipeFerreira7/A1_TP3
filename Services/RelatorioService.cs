@@ -13,12 +13,22 @@ public class RelatorioService
 
     public async Task<List<RelatorioFaturamentoDto>> FaturamentoPorTipoAsync(DateTime inicio, DateTime fim)
     {
+        // Normaliza as datas para comparar apenas a parte da data (ignora hora)
+        var dataInicio = inicio.Date;
+        var dataFim = fim.Date.AddDays(1).AddTicks(-1); // inclui o dia final completo
+
         var pedidos = await _context.Pedidos
-            .Include(p => p.Atendimento)
-            .Where(p => p.Data.Date >= inicio.Date && p.Data.Date <= fim.Date)
+            .Include(p => p.Atendimento)           // Essencial
+            .Where(p => p.Data >= dataInicio && p.Data <= dataFim)
             .ToListAsync();
 
-        return pedidos
+        Console.WriteLine($"[RELATORIO DEBUG] Período: {dataInicio:yyyy-MM-dd} a {dataFim:yyyy-MM-dd}");
+        Console.WriteLine($"[RELATORIO DEBUG] Quantidade de pedidos encontrados: {pedidos.Count}");
+
+        if (!pedidos.Any())
+            return new List<RelatorioFaturamentoDto>();
+
+        var faturamento = pedidos
             .GroupBy(p => p.Atendimento switch
             {
                 AtendimentoPresencial => "Presencial",
@@ -29,11 +39,15 @@ public class RelatorioService
             .Select(g => new RelatorioFaturamentoDto(
                 g.Key,
                 g.Sum(p => p.ValorTotal),
-                g.Count()))
+                g.Count()
+            ))
             .OrderByDescending(r => r.TotalFaturado)
             .ToList();
-    }
 
+        Console.WriteLine($"[RELATORIO DEBUG] Faturamento gerado: {faturamento.Count} tipos");
+
+        return faturamento;
+    }
     public async Task<List<RelatorioItensMaisVendidosDto>> ItensMaisVendidosAsync(DateTime inicio, DateTime fim)
     {
         // Busca todos os pedido-itens no período

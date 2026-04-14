@@ -17,7 +17,7 @@ public class ReservaController : BaseController
     /// <summary>Lista todas as reservas do usuário autenticado.</summary>
     [HttpGet]
     public async Task<IActionResult> Listar()
-        => Ok(await _service.ListarReservasUsuarioAsync(UsuarioIdLogado));
+        => Ok(await _service.ListarReservasAsync(UsuarioIdLogado));   // ← Corrigido aqui
 
     /// <summary>
     /// Cria uma nova reserva de mesa para o jantar.

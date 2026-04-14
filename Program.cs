@@ -97,15 +97,22 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseDefaultFiles();   // serve index.html em /
+app.UseStaticFiles();    // serve wwwroot/
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// ── Seed automático ──────────────────────────────────────────────────────────
+// ── Seed automático com correção de ordem ──────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<RestauranteDbContext>();
+
+    // Aplica migrações se necessário
+    await db.Database.MigrateAsync();
+
+    // Executa o seed com a ordem correta
     await DatabaseSeeder.SeedAsync(db);
 }
 
-app.Run();              
+app.Run();

@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante do Filipão - Sistema de Gestão</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <!-- AUTH PAGE -->
+    <div id="authPage" class="auth-wrap">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <h1>Restaurante do Filipão</h1>
+                <p>Sistema de Gestão</p>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+                <button class="auth-tab" onclick="switchAuthTab('cadastro')">Cadastrar</button>
+            </div>
+            <div id="authAlert"></div>
+
+            <div id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">E-mail</label>
+                    <input class="form-control" type="email" id="loginEmail" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input class="form-control" type="password" id="loginSenha" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;" onclick="doLogin()">
+                    <span id="loginSpinner" class="spinner" style="display:none"></span> Entrar
+                </button>
+            </div>
+
+            <div id="cadastroForm" style="display:none">
+                <div class="form-group">
+                    <label class="form-label">Nome</label>
+                    <input class="form-control" type="text" id="cadNome" placeholder="Seu nome">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">E-mail</label>
+                    <input class="form-control" type="email" id="cadEmail" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input class="form-control" type="password" id="cadSenha" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;" onclick="doCadastro()">
+                    <span id="cadSpinner" class="spinner" style="display:none"></span> Criar Conta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP PAGE -->
+    <div id="appPage" style="display:none; width:100%;">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <h1>Restaurante do Filipão</h1>
+                <p>Sistema de Gestão</p>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-label">Principal</div>
+                    <button class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">◈</span> Dashboard</button>
+                    <button class="nav-item" onclick="navigate('cardapio')"><span class="nav-icon">◉</span> Cardápio</button>
+                    <button class="nav-item" onclick="navigate('sugestao-chefe')"><span class="nav-icon">★</span> Sugestão do Chefe</button>
+                    <button class="nav-item" onclick="navigate('pedidos')"><span class="nav-icon">◎</span> Pedidos</button>
+                    <button class="nav-item" onclick="navigate('reservas')"><span class="nav-icon">⊟</span> Reservas</button>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-label">Gestão</div>
+                    <button class="nav-item" onclick="navigate('enderecos')"><span class="nav-icon">⊕</span> Endereços</button>
+                    <button class="nav-item" onclick="navigate('relatorios')"><span class="nav-icon">⊞</span> Relatórios</button>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <p id="userName">Usuário</p>
+                        <span id="userEmail">–</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm" style="width:100%; justify-content:center; margin-top:10px;" onclick="logout()">Sair</button>
+            </div>
+        </nav>
+
+        <main class="main">
+            <!-- DASHBOARD -->
+            <div id="page-dashboard" class="page active">
+                <div class="page-header">
+                    <div class="page-title"><h2>Dashboard</h2><p>Visão geral do restaurante</p></div>
+                    <button class="btn btn-primary" onclick="loadDashboard()">⟳ Atualizar</button>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-card"><div class="stat-label">Pedidos</div><div class="stat-value" id="statPedidos">–</div></div>
+                    <div class="stat-card"><div class="stat-label">Reservas</div><div class="stat-value" id="statReservas">–</div></div>
+                    <div class="stat-card"><div class="stat-label">Itens no Cardápio</div><div class="stat-value" id="statCardapio">–</div></div>
+                    <div class="stat-card"><div class="stat-label">Endereços</div><div class="stat-value" id="statEnderecos">–</div></div>
+                </div>
+                <div class="grid-2" style="gap:20px;">
+                    <div class="card"><div class="card-title">Sugestões do Chefe Hoje</div><div id="dashSugestoes" style="margin-top:12px;"></div></div>
+                    <div class="card"><div class="card-title">Últimos Pedidos</div><div id="dashPedidos" style="margin-top:12px;"></div></div>
+                </div>
+            </div>
+
+            <!-- CARDÁPIO -->
+            <div id="page-cardapio" class="page">
+                <div class="page-header">
+                    <div class="page-title"><h2>Cardápio</h2><p>Gerencie os itens do cardápio</p></div>
+                    <button class="btn btn-primary" onclick="openModal('modalNovoItem')">+ Novo Item</button>
+                </div>
+                <div class="filter-pills">
+                    <button class="pill active" onclick="filterCardapio(null, this)">Todos</button>
+                    <button class="pill" onclick="filterCardapio(0, this)">Almoço</button>
+                    <button class="pill" onclick="filterCardapio(1, this)">Jantar</button>
+                </div>
+                <div id="cardapioGrid" class="menu-grid"></div>
+            </div>
+
+            <!-- SUGESTÃO DO CHEFE -->
+            <div id="page-sugestao-chefe" class="page">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h2>Sugestão do Chefe</h2>
+                        <p>Defina a sugestão diária de almoço e jantar (máximo 1 por período)</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openNovaSugestaoModal()">
+                        + Nova Sugestão
+                    </button>
+                </div>
+
+                <div id="sugestoesList" class="grid-2" style="gap:20px;">
+                    <!-- Preenchido via JavaScript -->
+                </div>
+            </div>
+
+            <!-- PEDIDOS -->
+            <div id="page-pedidos" class="page">
+                <div class="page-header">
+                    <div class="page-title"><h2>Pedidos</h2><p>Histórico de pedidos</p></div>
+                    <button class="btn btn-primary" onclick="navigate('novo-pedido')">+ Novo Pedido</button>
+                </div>
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>Data</th><th>Período</th><th>Tipo</th><th>Itens</th><th>Total</th></tr></thead>
+                            <tbody id="pedidosTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOVO PEDIDO -->
+            <div id="page-novo-pedido" class="page">
+                <div class="page-header">
+                    <div class="page-title"><h2>Novo Pedido</h2><p>Selecione os itens e configure o pedido</p></div>
+                    <button class="btn btn-outline" onclick="navigate('pedidos')">← Voltar</button>
+                </div>
+                <div style="margin-right: 300px;">
+                    <div class="card" style="margin-bottom:16px;">
+                        <div class="card-title" style="margin-bottom:14px;">Configuração</div>
+                        <div class="grid-2" style="gap:14px;">
+                            <div class="form-group" style="margin-bottom:0">
+                                <label class="form-label">Período</label>
+                                <select class="form-control" id="pedPeriodo" onchange="loadCardapioForOrder()">
+                                    <option value="0">Almoço</option>
+                                    <option value="1">Jantar</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0">
+                                <label class="form-label">Tipo de Atendimento</label>
+                                <select class="form-control" id="pedTipo" onchange="updateOrderType()">
+                                    <option value="Presencial">Presencial</option>
+                                    <option value="DeliveryProprio">Delivery Próprio</option>
+                                    <option value="DeliveryApp">Delivery App</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="deliveryFields" style="display:none; margin-top:14px;">
+                            <div class="form-group"><label class="form-label">Endereço</label><select class="form-control" id="pedEnderecoId"></select></div>
+                            <div id="deliveryProprioField" style="display:none">
+                                <div class="form-group">
+                                    <label class="form-label">Taxa de Entrega (R$)</label>
+                                    <input class="form-control" type="number" id="pedTaxaFixa" placeholder="0.00" step="0.01" oninput="updateCartUI()">
+                                </div>
+                            </div>
+                            <div id="deliveryAppField" style="display:none">
+                                <div class="form-group">
+                                    <label class="form-label">Nome do App</label>
+                                    <input class="form-control" type="text" id="pedNomeApp" placeholder="iFood, Rappi...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title" style="margin-bottom:14px;">Itens do Cardápio</div>
+                        <div id="orderMenuGrid" class="menu-grid"></div>
+                    </div>
+                </div>
+
+                <div class="cart-sidebar">
+                    <div class="cart-title">Carrinho</div>
+                    <div id="cartItems" style="flex:1;"></div>
+                    <div class="cart-total">
+                        <div class="cart-total-row"><span class="cart-total-label">Subtotal</span><span class="cart-total-value" id="cartSubtotal">R$ 0,00</span></div>
+                        <div class="cart-total-row"><span class="cart-total-label">Taxa</span><span class="cart-total-value" id="cartTaxa">R$ 0,00</span></div>
+                        <div class="cart-total-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+                            <span class="cart-total-label" style="font-size:13px;">Total</span>
+                            <span class="cart-grand" id="cartTotal">R$ 0,00</span>
+                        </div>
+                        <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:12px;" onclick="submitOrder()">
+                            <span id="orderSpinner" class="spinner" style="display:none"></span> Confirmar Pedido
+                        </button>
+                        <div id="orderAlert" style="margin-top:10px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESERVAS -->
+            <div id="page-reservas" class="page">
+                <div class="page-header">
+                    <div class="page-title"><h2>Reservas</h2><p>Reservas de mesa para jantar</p></div>
+                    <button class="btn btn-primary" onclick="openModal('modalNovaReserva')">+ Nova Reserva</button>
+                </div>
+                <div id="reservasList"></div>
+            </div>
+
+            <!-- ENDEREÇOS -->
+            <div id="page-enderecos" class="page">
+                <div class="page-header">
+                    <div class="page-title"><h2>Endereços</h2><p>Seus endereços de entrega</p></div>
+                    <button class="btn btn-primary" onclick="openModal('modalNovoEndereco')">+ Novo Endereço</button>
+                </div>
+                <div id="enderecosList"></div>
+            </div>
+
+            <!-- RELATÓRIOS -->
+            <div id="page-relatorios" class="page">
+                <div class="page-header">
+                    <div class="page-title"><h2>Relatórios</h2><p>Faturamento e itens mais vendidos</p></div>
+                </div>
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-title" style="margin-bottom:14px;">Filtro de Período</div>
+                    <div class="pf">
+                        <div class="pf-item"><label class="form-label">Data Início</label><input class="form-control" type="date" id="relInicio"></div>
+                        <div class="pf-item"><label class="form-label">Data Fim</label><input class="form-control" type="date" id="relFim"></div>
+                        <div class="pf-item" style="justify-content:flex-end; min-width:auto;">
+                            <button class="btn btn-primary" style="margin-top:auto;" onclick="loadRelatorios()">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2" style="gap:20px;">
+                    <div class="card"><div class="card-title" style="margin-bottom:16px;">Faturamento por Tipo</div><div id="relFaturamento"></div></div>
+                    <div class="card"><div class="card-title" style="margin-bottom:16px;">Itens Mais Vendidos</div><div id="relMaisVendidos"></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal-overlay" id="modalNovoItem">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Novo Item do Cardápio</div>
+                <button class="modal-close" onclick="closeModal('modalNovoItem')">✕</button>
+            </div>
+            <div id="novoItemAlert"></div>
+            <div class="form-group"><label class="form-label">Nome</label><input class="form-control" id="iNome" placeholder="Nome do prato"></div>
+            <div class="form-group"><label class="form-label">Descrição</label><textarea class="form-control" id="iDesc" placeholder="Descrição do prato" rows="2"></textarea></div>
+            <div class="grid-2" style="gap:14px">
+                <div class="form-group"><label class="form-label">Preço Base (R$)</label><input class="form-control" type="number" id="iPreco" step="0.01" placeholder="0.00"></div>
+                <div class="form-group">
+                    <label class="form-label">Período</label>
+                    <select class="form-control" id="iPeriodo">
+                        <option value="0">Almoço</option>
+                        <option value="1">Jantar</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('modalNovoItem')">Cancelar</button>
+                <button class="btn btn-primary" onclick="submitNovoItem()">
+                    <span id="novoItemSpinner" class="spinner" style="display:none"></span> Criar Item
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalNovaReserva">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Nova Reserva</div>
+                <button class="modal-close" onclick="closeModal('modalNovaReserva')">✕</button>
+            </div>
+            <div id="novaReservaAlert"></div>
+            <div class="form-group"><label class="form-label">Nome do Cliente</label><input class="form-control" id="rNome" placeholder="Nome completo"></div>
+            <div class="form-group"><label class="form-label">Data e Hora (19h–22h)</label><input class="form-control" type="datetime-local" id="rHorario"></div>
+            <div class="form-group"><label class="form-label">Mesa ID</label><input class="form-control" type="number" id="rMesa" placeholder="1" min="1"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('modalNovaReserva')">Cancelar</button>
+                <button class="btn btn-primary" onclick="submitReserva()">
+                    <span id="reservaSpinner" class="spinner" style="display:none"></span> Reservar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalNovoEndereco">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Novo Endereço</div>
+                <button class="modal-close" onclick="closeModal('modalNovoEndereco')">✕</button>
+            </div>
+            <div id="novoEndAlert"></div>
+            <div class="form-group"><label class="form-label">Logradouro</label><input class="form-control" id="eLog" placeholder="Rua, número, bairro"></div>
+            <div class="grid-2" style="gap:14px">
+                <div class="form-group"><label class="form-label">Cidade</label><input class="form-control" id="eCidade" placeholder="Cidade"></div>
+                <div class="form-group"><label class="form-label">Estado</label><input class="form-control" id="eEstado" placeholder="UF" maxlength="2"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('modalNovoEndereco')">Cancelar</button>
+                <button class="btn btn-primary" onclick="submitEndereco()">
+                    <span id="endSpinner" class="spinner" style="display:none"></span> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOVA SUGESTÃO -->
+    <div class="modal-overlay" id="modalNovaSugestao">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Nova Sugestão do Chefe</div>
+                <button class="modal-close" onclick="closeModal('modalNovaSugestao')">✕</button>
+            </div>
+            <div id="modalSugestaoAlert"></div>
+            <div id="modalSugestaoBody"></div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('modalNovaSugestao')">Cancelar</button>
+                <button class="btn btn-primary" onclick="submitNovaSugestao()">
+                    <span id="sugestaoSpinner" class="spinner" style="display:none"></span>
+                    Definir Sugestão
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS - Ordem importante! -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/cardapio.js"></script>
+    <script src="/js/pedidos.js"></script>
+    <script src="/js/reservas.js"></script>
+    <script src="/js/enderecos.js"></script>
+    <script src="/js/relatorios.js"></script>
+    <script src="/js/app.js"></script>
+    <script src="/js/sugestao-chefe.js"></script>
+</body>
+</html>

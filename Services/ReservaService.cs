@@ -1,8 +1,10 @@
 ﻿namespace A1_order_system.Services;
+
 using A1_order_system.Data;
 using A1_order_system.Dtos;
 using A1_order_system.Entities;
 using Microsoft.EntityFrameworkCore;
+
 public class ReservaService
 {
     private readonly RestauranteDbContext _context;
@@ -11,54 +13,78 @@ public class ReservaService
 
     public async Task<ReservaResponseDto> CriarReservaAsync(ReservaDto dto, long usuarioId)
     {
-        // Regra: reserva apenas para jantar (19h–22h)
-        var reserva = new Reserva
+        DateTime horarioReserva = dto.Horario;
+
+        // ==================== TRATAMENTO DE FUSO HORÁRIO ====================
+        // Se o DateTime veio sem Kind (Unspecified), assumimos que é horário local do Brasil (UTC-3)
+        if (horarioReserva.Kind == DateTimeKind.Unspecified)
         {
-            DataHora = dto.Horario.Date,
-            NomeDoCliente = dto.NomeDoCliente,
-            MesaId = dto.MesaId,
-            UsuarioId = usuarioId
-        };
+            horarioReserva = DateTime.SpecifyKind(horarioReserva, DateTimeKind.Local);
+        }
 
-        if (!reserva.HorarioValido())
+        // Converte para horário local explícito (para evitar offset automático)
+        var horarioLocal = horarioReserva.ToLocalTime();
+
+        Console.WriteLine($"[RESERVA DEBUG] Recebido do frontend: {horarioReserva:yyyy-MM-dd HH:mm:ss} (Kind: {horarioReserva.Kind})");
+        Console.WriteLine($"[RESERVA DEBUG] Convertido para Local: {horarioLocal:yyyy-MM-dd HH:mm:ss}");
+
+        var hora = horarioLocal.TimeOfDay;
+
+        // Validação de horário (19:00 - 22:00)
+        if (hora < new TimeSpan(19, 0, 0) || hora > new TimeSpan(22, 0, 0))
+        {
             throw new InvalidOperationException(
-                $"Reservas só são aceitas entre {Reserva.HorarioInicio:hh\\:mm} e {Reserva.HorarioFim:hh\\:mm}.");
+                $"Reservas só são aceitas entre 19:00 e 22:00. Horário informado: {horarioLocal:HH:mm}");
+        }
 
-        // Regra: deve ser feita com pelo menos 1 dia de antecedência (almoço)
-        // Para jantar: a regra mencionada no doc é para almoço; reservas de jantar seguem horário
-        if (dto.Horario.Date <= DateTime.UtcNow.Date)
-            throw new InvalidOperationException("Reservas devem ser feitas com ao menos 1 dia de antecedência.");
+        // Validação de antecedência
+        if (horarioLocal.Date < DateTime.UtcNow.Date)
+        {
+            throw new InvalidOperationException("Não é possível reservar para datas passadas.");
+        }
+
+        // Verifica conflito de mesa no mesmo dia
+        bool conflito = await _context.Reservas.AnyAsync(r =>
+            r.MesaId == dto.MesaId &&
+            r.DataHora.Date == horarioLocal.Date);
+
+        if (conflito)
+            throw new InvalidOperationException("Esta mesa já está reservada para esse dia.");
 
         var mesa = await _context.Mesas.FindAsync(dto.MesaId)
             ?? throw new KeyNotFoundException("Mesa não encontrada.");
 
-        // Verifica conflito de reserva para a mesma mesa no mesmo dia e horário
-        bool conflito = await _context.Reservas.AnyAsync(r =>
-            r.MesaId == dto.MesaId &&
-            r.DataHora.Date == dto.Horario.Date);
-
-        if (conflito)
-            throw new InvalidOperationException("Mesa já reservada para esse dia.");
-
-
+        var reserva = new Reserva
+        {
+            DataHora = horarioLocal,
+            NomeDoCliente = dto.NomeDoCliente?.Trim() ?? "Sem nome",
+            MesaId = dto.MesaId,
+            UsuarioId = usuarioId
+        };
 
         _context.Reservas.Add(reserva);
         await _context.SaveChangesAsync();
 
-        return new ReservaResponseDto(
-            reserva.Id, reserva.DataHora,
-            reserva.NomeDoCliente, mesa.Numero);
-    }
+        Console.WriteLine($"[RESERVA SUCESSO] Reserva criada para {horarioLocal:HH:mm}");
 
-    public async Task<List<ReservaResponseDto>> ListarReservasUsuarioAsync(long usuarioId)
+        return new ReservaResponseDto(
+            reserva.Id,
+            reserva.DataHora,
+            reserva.NomeDoCliente,
+            mesa.Numero);
+    }
+    // Método renomeado e corrigido para evitar o erro de compilação
+    public async Task<List<ReservaResponseDto>> ListarReservasAsync(long usuarioId)
     {
         return await _context.Reservas
             .Include(r => r.Mesa)
             .Where(r => r.UsuarioId == usuarioId)
             .OrderBy(r => r.DataHora)
             .Select(r => new ReservaResponseDto(
-                r.Id, r.DataHora,
-                r.NomeDoCliente, r.Mesa.Numero))
+                r.Id,
+                r.DataHora,
+                r.NomeDoCliente,
+                r.Mesa.Numero))
             .ToListAsync();
     }
 }
