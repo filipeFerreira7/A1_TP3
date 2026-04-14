@@ -34,7 +34,7 @@ public class SugestaoService
             Periodo = dto.Periodo,
             ItemCardapioId = dto.ItemCardapioId,
             UsuarioId = usuarioId,
-            Desconto = 20m   // 20% fixo
+            Desconto = 0.20m
         };
 
         _context.SugestoesChefe.Add(sugestao);

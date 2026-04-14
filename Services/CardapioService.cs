@@ -16,6 +16,7 @@ public class CardapioService
     {
         var hoje = DateTime.UtcNow.Date;
 
+        // Busca todas as sugestões de hoje
         var sugestoesHoje = await _context.SugestoesChefe
             .Where(s => s.Data.Date == hoje)
             .ToListAsync();
@@ -31,8 +32,17 @@ public class CardapioService
 
         return itens.Select(item =>
         {
+            // Encontra se este item é sugestão do chefe HOJE e do mesmo período
             var sugestao = sugestoesHoje.FirstOrDefault(s =>
-                s.ItemCardapioId == item.Id && s.Periodo == item.Periodo);
+                s.ItemCardapioId == item.Id &&
+                s.Periodo == item.Periodo);
+
+            decimal? precoComDesconto = null;
+
+            if (sugestao != null)
+            {
+                precoComDesconto = sugestao.AplicarDesconto(item.PrecoBase);
+            }
 
             return new ItemCardapioResponseDto(
                 item.Id,
@@ -40,9 +50,10 @@ public class CardapioService
                 item.Descricao,
                 item.PrecoBase,
                 item.Periodo,
-                sugestao != null,
-                sugestao != null ? sugestao.AplicarDesconto(item.PrecoBase) : null,
-                item.Ingredientes.Select(ing => ing.Nome).ToList());
+                sugestao != null,           // isSugestaoChefe
+                precoComDesconto,           // precoComDesconto (pode ser null)
+                item.Ingredientes.Select(ing => ing.Nome).ToList()
+            );
         }).ToList();
     }
 

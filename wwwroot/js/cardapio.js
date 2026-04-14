@@ -33,40 +33,50 @@ function renderCardapio() {
         return;
     }
 
-    grid.innerHTML = items.map(item => `
-        <div class="menu-item-card">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                <span class="menu-item-name">${item.nome}</span>
-                ${item.isSugestaoChefe ? `
-                    <span class="menu-badge menu-badge-chef" style="background:#c0392b; color:white; font-weight:600;">
-                        ★ Sugestão do Chefe
-                    </span>` : ''}
-            </div>
-            <div class="menu-item-desc">${item.descricao || ''}</div>
-            
-            ${item.ingredientes?.length ? `
-                <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">
-                    ${item.ingredientes.join(', ')}
-                </div>` : ''}
-            
-            <div class="menu-item-footer">
-                <span class="menu-price">
-                    ${item.precoComDesconto
-            ? `
-                            <s style="color:var(--text3);font-size:12px;">R$ ${Number(item.precoBase).toFixed(2)}</s> 
-                            <strong style="color:var(--gold);">R$ ${Number(item.precoComDesconto).toFixed(2)}</strong>
-                            <small style="color:#27ae60; margin-left:4px;">(20% OFF)</small>
-                          `
-            : `R$ ${Number(item.precoBase).toFixed(2)}`}
-                </span>
-                <span class="menu-badge ${item.periodo === 0 ? 'menu-badge-almoco' : 'menu-badge-jantar'}">
-                    ${item.periodo === 0 ? 'Almoço' : 'Jantar'}
-                </span>
-            </div>
-        </div>
-    `).join('');
-}
+    grid.innerHTML = items.map(item => {
+        const precoBase = Number(item.precoBase) || 0;
+        const precoDesconto = Number(item.precoComDesconto) || 0;
 
+        let precoHtml = '';
+
+        if (item.isSugestaoChefe && precoDesconto > 0 && precoDesconto < precoBase) {
+            precoHtml = `
+                <s style="color:var(--text3);font-size:12px;">R$ ${precoBase.toFixed(2)}</s> 
+                <strong style="color:var(--gold);">R$ ${precoDesconto.toFixed(2)}</strong>
+                <small style="color:#27ae60; margin-left:6px;">(20% OFF)</small>
+            `;
+        } else {
+            precoHtml = `R$ ${precoBase.toFixed(2)}`;
+        }
+
+        return `
+            <div class="menu-item-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span class="menu-item-name">${item.nome}</span>
+                    ${item.isSugestaoChefe ? `
+                        <span class="menu-badge menu-badge-chef" style="background:#c0392b;color:white;font-weight:600;">
+                            ★ Sugestão do Chefe
+                        </span>` : ''}
+                </div>
+                <div class="menu-item-desc">${item.descricao || ''}</div>
+                
+                ${item.ingredientes?.length ? `
+                    <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">
+                        ${item.ingredientes.join(', ')}
+                    </div>` : ''}
+                
+                <div class="menu-item-footer">
+                    <span class="menu-price">
+                        ${precoHtml}
+                    </span>
+                    <span class="menu-badge ${item.periodo === 0 ? 'menu-badge-almoco' : 'menu-badge-jantar'}">
+                        ${item.periodo === 0 ? 'Almoço' : 'Jantar'}
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 // Função para carregar sugestões do chefe (pode ser chamada no Dashboard também)
 async function loadSugestoesChefe() {
     const r = await api('GET', '/api/cardapio/sugestoes-hoje');
