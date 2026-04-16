@@ -8,3 +8,4 @@
 
 # Arquivos de publicação e temporários
 publish/
+.codex-build/
