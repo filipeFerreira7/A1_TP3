@@ -256,8 +256,6 @@ O sistema utiliza **JWT (JSON Web Tokens)** para autenticação:
 - Conflictos: Uma mesa não pode ter mais de uma reserva no mesmo dia
 
 ### Pedidos
-- Almoço: 11h às 14h59
-- Jantar: 18h às 21h59
 - Taxa de entrega para delivery próprio é configurável
 - Taxa fixa de 20% para delivery via aplicativo
 
