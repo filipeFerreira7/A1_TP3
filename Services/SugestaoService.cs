@@ -1,4 +1,4 @@
-Ôªønamespace A1_order_system.Services;
+namespace A1_order_system.Services;
 
 using A1_order_system.Data;
 using A1_order_system.Dtos;
@@ -15,18 +15,17 @@ public class SugestaoService
     {
         var hoje = DateTime.UtcNow.Date;
 
-        // Regra: apenas 1 sugest√£o por per√≠odo por dia
         var jaExiste = await _context.SugestoesChefe
             .AnyAsync(s => s.Data.Date == hoje && s.Periodo == dto.Periodo);
 
         if (jaExiste)
-            throw new InvalidOperationException($"J√° existe uma Sugest√£o do Chefe definida para {dto.Periodo} hoje.");
+            throw new InvalidOperationException($"J· existe uma Sugest„o do Chefe definida para {dto.Periodo} hoje.");
 
         var item = await _context.ItensCardapio.FindAsync(dto.ItemCardapioId)
-            ?? throw new KeyNotFoundException("Item do card√°pio n√£o encontrado.");
+            ?? throw new KeyNotFoundException("Item do card·pio n„o encontrado.");
 
         if (item.Periodo != dto.Periodo)
-            throw new InvalidOperationException($"O item '{item.Nome}' n√£o pertence ao per√≠odo {dto.Periodo}.");
+            throw new InvalidOperationException($"O item '{item.Nome}' n„o pertence ao perÌodo {dto.Periodo}.");
 
         var sugestao = new SugestaoChefe
         {
@@ -40,7 +39,6 @@ public class SugestaoService
         _context.SugestoesChefe.Add(sugestao);
         await _context.SaveChangesAsync();
 
-        // Retorna com dados completos
         return new SugestaoResponseDto
         {
             Id = sugestao.Id,
@@ -67,9 +65,10 @@ public class SugestaoService
                 Periodo = s.Periodo,
                 NomeItem = s.ItemCardapio.Nome,
                 PrecoBase = s.ItemCardapio.PrecoBase,
-                PrecoComDesconto = s.ItemCardapio.PrecoBase * 0.8m,   // 20% de desconto
+                PrecoComDesconto = s.ItemCardapio.PrecoBase * 0.8m,
                 Desconto = s.Desconto
             })
             .ToListAsync();
     }
 }
+

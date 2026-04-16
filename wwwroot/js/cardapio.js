@@ -1,6 +1,4 @@
-﻿// ====================== CARDAPIO.JS ======================
-
-async function loadCardapio() {
+﻿async function loadCardapio() {
     const grid = document.getElementById('cardapioGrid');
     grid.innerHTML = '<div class="spinner" style="margin:40px auto;display:block;"></div>';
 
@@ -55,7 +53,7 @@ function renderCardapio() {
                     <span class="menu-item-name">${item.nome}</span>
                     ${item.isSugestaoChefe ? `
                         <span class="menu-badge menu-badge-chef" style="background:#c0392b;color:white;font-weight:600;">
-                            ★ Sugestão do Chefe
+                            ? Sugestão do Chefe
                         </span>` : ''}
                 </div>
                 <div class="menu-item-desc">${item.descricao || ''}</div>
@@ -77,11 +75,10 @@ function renderCardapio() {
         `;
     }).join('');
 }
-// Função para carregar sugestões do chefe (pode ser chamada no Dashboard também)
 async function loadSugestoesChefe() {
     const r = await api('GET', '/api/cardapio/sugestoes-hoje');
     if (r.ok && r.data) {
-        // Você pode usar isso em outro lugar se quiser atualizar em tempo real
+
         console.log('Sugestões do Chefe hoje:', r.data);
     }
 }
@@ -111,10 +108,10 @@ async function submitNovoItem() {
 
     if (r.ok) {
         closeModal('modalNovoItem');
-        loadCardapio();                    // Atualiza a lista
+        loadCardapio();               
         showAlert('novoItemAlert', 'Item criado com sucesso!', 'success');
 
-        // Limpa formulário
+        
         ['iNome', 'iDesc', 'iPreco'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';

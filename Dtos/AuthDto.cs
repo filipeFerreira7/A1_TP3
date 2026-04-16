@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Dtos
+namespace A1_order_system.Dtos
 {
     public record AuthDto
         (
@@ -7,5 +7,5 @@
         string Senha
         );
     public record LoginDto(string Email, string Senha);
-    public record TokenDto(string Token, string Nome, string Email);
+    public record TokenDto(string Token, string Nome, string Email, string Perfil);
 }

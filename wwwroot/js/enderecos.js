@@ -1,5 +1,4 @@
-﻿// ====================== ENDERECOS.JS ======================
-
+﻿
 async function loadEnderecos() {
     const container = document.getElementById('enderecosList');
     if (!container) return;
@@ -12,7 +11,7 @@ async function loadEnderecos() {
     if (list.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">⊕</div>
+                <div class="empty-icon">?</div>
                 <div class="empty-text">Nenhum endereço cadastrado</div>
             </div>`;
         return;
@@ -20,10 +19,14 @@ async function loadEnderecos() {
 
     container.innerHTML = list.map(e => `
         <div class="card" style="display:flex; align-items:center; gap:16px;">
-            <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,169,110,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;">⊕</div>
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(201,169,110,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;">👤</div>
             <div style="flex:1;">
                 <div style="font-size:14px;font-weight:500;color:var(--text)">${e.logradouro}</div>
                 <div style="font-size:12px;color:var(--text3)">${e.cidade} / ${e.estado}</div>
+                ${e.clienteNome ? `
+                    <div style="font-size:12px;color:var(--gold);margin-top:4px;">
+                        ${e.clienteNome}${e.clienteEmail ? ` · ${e.clienteEmail}` : ''}
+                    </div>` : ''}
             </div>
             <button class="btn btn-danger btn-sm" onclick="deleteEndereco(${e.id})">Remover</button>
         </div>
@@ -66,7 +69,6 @@ async function submitEndereco() {
         if (r.ok) {
             closeModal('modalNovoEndereco');
             loadEnderecos();
-            // Limpa formulário
             document.getElementById('eLog').value = '';
             document.getElementById('eCidade').value = '';
             document.getElementById('eEstado').value = '';
@@ -81,5 +83,4 @@ async function submitEndereco() {
     }
 }
 
-// Expor a função globalmente (importante para onclick)
 window.submitEndereco = submitEndereco;

@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Dtos
+namespace A1_order_system.Dtos
 {
     public record EnderecoDto 
         (
@@ -16,7 +16,9 @@ namespace A1_order_system.Dtos
         long Id,
         string Logradouro,
         string Cidade,
-        string Estado
+        string Estado,
+        string? ClienteNome = null,
+        string? ClienteEmail = null
         )
     { }
 }

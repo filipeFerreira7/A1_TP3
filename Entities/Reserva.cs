@@ -1,9 +1,8 @@
-﻿namespace A1_order_system.Entities
+namespace A1_order_system.Entities
 {
     public class Reserva
     {
 
-        // Janela de horário válida para reservas
         public static readonly TimeSpan HorarioInicio = new(19, 0, 0);
         public static readonly TimeSpan HorarioFim = new(22, 0, 0);
 

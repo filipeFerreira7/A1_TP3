@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Controllers;
+namespace A1_order_system.Controllers;
 using A1_order_system.Dtos;
 using A1_order_system.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +12,6 @@ public class AuthController : ControllerBase
 
     public AuthController(AuthService authService) => _authService = authService;
 
-    /// <summary>Cadastra um novo usuário e retorna o token JWT.</summary>
     [HttpPost("cadastro")]
     public async Task<IActionResult> Cadastrar([FromBody] AuthDto dto)
     {
@@ -27,7 +26,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>Autentica o usuário e retorna o token JWT.</summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {

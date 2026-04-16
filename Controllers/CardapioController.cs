@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Controllers;
+namespace A1_order_system.Controllers;
 using A1_order_system.Dtos;
 using A1_order_system.Services;
 using global::RestauranteApp.Services;
@@ -18,19 +18,16 @@ public class CardapioController : BaseController
         _sugestaoService = sugestaoService;
     }
 
-    /// <summary>Lista todos os itens do cardápio, opcionalmente filtrando por período.</summary>
     [HttpGet]
     public async Task<IActionResult> Listar([FromQuery] Periodo? periodo)
         => Ok(await _cardapioService.ListarAsync(periodo));
 
-    /// <summary>Retorna as Sugestões do Chefe do dia.</summary>
     [HttpGet("sugestoes-hoje")]
     public async Task<IActionResult> SugestoesHoje()
         => Ok(await _sugestaoService.SugestoesHojeAsync());
 
-    /// <summary>Cria um novo item no cardápio. (Admin)</summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CriarItem([FromBody] ItemCardapioDto dto)
     {
         try
@@ -44,9 +41,8 @@ public class CardapioController : BaseController
         }
     }
 
-    /// <summary>Define a Sugestão do Chefe do dia para um período. (Admin)</summary>
     [HttpPost("sugestao")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DefinirSugestao([FromBody] SugestaoDto dto)
     {
         try

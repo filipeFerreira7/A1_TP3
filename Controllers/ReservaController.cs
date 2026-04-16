@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Controllers;
+namespace A1_order_system.Controllers;
 
 using A1_order_system.Dtos;
 using A1_order_system.Services;
@@ -14,15 +14,10 @@ public class ReservaController : BaseController
 
     public ReservaController(ReservaService service) => _service = service;
 
-    /// <summary>Lista todas as reservas do usuário autenticado.</summary>
     [HttpGet]
     public async Task<IActionResult> Listar()
-        => Ok(await _service.ListarReservasAsync(UsuarioIdLogado));   // ← Corrigido aqui
+        => Ok(await _service.ListarReservasAsync(UsuarioIdLogado));
 
-    /// <summary>
-    /// Cria uma nova reserva de mesa para o jantar.
-    /// Horário aceito: 19h–22h. Deve ser feita com 1 dia de antecedência.
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] ReservaDto dto)
     {
@@ -41,3 +36,4 @@ public class ReservaController : BaseController
         }
     }
 }
+

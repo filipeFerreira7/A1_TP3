@@ -1,4 +1,4 @@
-Ôªønamespace A1_order_system.Services;
+namespace A1_order_system.Services;
 using A1_order_system.Data;
 using A1_order_system.Dtos;
 using A1_order_system.Entities;
@@ -34,11 +34,27 @@ public class EnderecoService
             .ToListAsync();
     }
 
+    public async Task<List<EnderecoResponseDto>> ListarTodosAsync()
+    {
+        return await _context.Enderecos
+            .Include(e => e.Usuario)
+            .OrderBy(e => e.Usuario.Nome)
+            .ThenBy(e => e.Cidade)
+            .Select(e => new EnderecoResponseDto(
+                e.Id,
+                e.Logradouro,
+                e.Cidade,
+                e.Estado,
+                e.Usuario.Nome,
+                e.Usuario.Email))
+            .ToListAsync();
+    }
+
     public async Task RemoverAsync(long enderecoId, long usuarioId)
     {
         var endereco = await _context.Enderecos
             .FirstOrDefaultAsync(e => e.Id == enderecoId && e.UsuarioId == usuarioId)
-            ?? throw new KeyNotFoundException("Endere√ßo n√£o encontrado.");
+            ?? throw new KeyNotFoundException("EndereÁo n„o encontrado.");
 
         _context.Enderecos.Remove(endereco);
         await _context.SaveChangesAsync();

@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Services
+namespace A1_order_system.Services
 {
     using A1_order_system.Data;
     using A1_order_system.Dtos;
@@ -13,40 +13,37 @@
 
         public async Task<PedidoResponseDto> CriarPedidoAsync(PedidoDto dto, long usuarioId)
         {
-            // ── Validar itens (todos devem ser do mesmo período do pedido) ────────
             var idsItens = dto.Itens.Select(i => i.ItemCardapioId).ToList();
             var itensCardapio = await _context.ItensCardapio
                 .Where(i => idsItens.Contains(i.Id))
                 .ToListAsync();
 
             if (itensCardapio.Count != idsItens.Count)
-                throw new KeyNotFoundException("Um ou mais itens do cardápio não foram encontrados.");
+                throw new KeyNotFoundException("Um ou mais itens do card�pio n�o foram encontrados.");
 
             var itensWrongPeriod = itensCardapio.Where(i => i.Periodo != dto.Periodo).ToList();
             if (itensWrongPeriod.Any())
                 throw new InvalidOperationException(
                     $"Os itens [{string.Join(", ", itensWrongPeriod.Select(i => i.Nome))}] " +
-                    $"não pertencem ao período {dto.Periodo}.");
+                    $"n�o pertencem ao per�odo {dto.Periodo}.");
 
-            // ── Montar Atendimento conforme tipo ──────────────────────────────────
             Atendimento atendimento = dto.TipoAtendimento switch
             {
                 "Presencial" => new AtendimentoPresencial(),
                 "DeliveryProprio" => new AtendimentoDeliveryProprio
                 {
-                    TaxaFixa = dto.TaxaFixa ?? throw new InvalidOperationException("TaxaFixa obrigatória para Delivery Próprio.")
+                    TaxaFixa = dto.TaxaFixa ?? throw new InvalidOperationException("TaxaFixa obrigat�ria para Delivery Pr�prio.")
                 },
                 "DeliveryApp" => new AtendimentoDeliveryApp
                 {
-                    NomeApp = dto.NomeApp ?? throw new InvalidOperationException("NomeApp obrigatório para Delivery por Aplicativo.")
+                    NomeApp = dto.NomeApp ?? throw new InvalidOperationException("NomeApp obrigat�rio para Delivery por Aplicativo.")
                 },
-                _ => throw new InvalidOperationException($"Tipo de atendimento inválido: {dto.TipoAtendimento}.")
+                _ => throw new InvalidOperationException($"Tipo de atendimento inv�lido: {dto.TipoAtendimento}.")
             };
 
             _context.Atendimentos.Add(atendimento);
-            await _context.SaveChangesAsync(); // gera Id do atendimento
+            await _context.SaveChangesAsync();
 
-            // ── Montar Pedido ─────────────────────────────────────────────────────
             var pedido = new Pedido
             {
                 Data = DateTime.UtcNow,
@@ -67,7 +64,6 @@
             _context.Pedidos.Add(pedido);
             await _context.SaveChangesAsync();
 
-            // ── Carregar para calcular valor total ────────────────────────────────
             await _context.Entry(pedido).Collection(p => p.Itens).Query()
                 .Include(pi => pi.ItemCardapio).LoadAsync();
             await _context.Entry(pedido).Reference(p => p.Atendimento).LoadAsync();
@@ -141,3 +137,4 @@
         }
     }
 }
+

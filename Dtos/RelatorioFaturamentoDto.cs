@@ -1,9 +1,11 @@
-﻿namespace A1_order_system.Dtos
+namespace A1_order_system.Dtos
 {
     public record RelatorioFaturamentoDto
     (
         string TipoAtendimento,
         decimal TotalFaturado,
+        decimal TotalTaxas,
+        decimal ReceitaLiquida,
         int TotalPedidos
     );
 

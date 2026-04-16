@@ -1,6 +1,4 @@
-﻿// ====================== PEDIDOS.JS ======================
-
-async function loadPedidos() {
+﻿async function loadPedidos() {
     const tbody = document.getElementById('pedidosTable');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;"><span class="spinner"></span></td></tr>';
 
@@ -34,10 +32,11 @@ async function initNovoPedido() {
     const sel = document.getElementById('pedEnderecoId');
 
     sel.innerHTML = ends.length
-        ? ends.map(e => `<option value="${e.id}">${e.logradouro} – ${e.cidade}/${e.estado}</option>`).join('')
-        : '<option value="">Nenhum endereço cadastrado</option>';
+        ? ends.map(e => `<option value="${e.id}">${e.logradouro} - ${e.cidade}/${e.estado}</option>`).join('')
+        : '<option value="">Nenhum endereco cadastrado</option>';
 
     await loadCardapioForOrder();
+    updateOrderType();
     updateCartUI();
 }
 
@@ -52,7 +51,7 @@ async function loadCardapioForOrder() {
     grid.innerHTML = items.length ? items.map(item => `
         <div class="menu-item-card" id="oi-${item.id}">
             <div class="qty-selector">
-                <button class="qty-btn" onclick="changeQty(${item.id}, -1, ${item.precoBase})">−</button>
+                <button class="qty-btn" onclick="changeQty(${item.id}, -1, ${item.precoBase})">-</button>
                 <span class="qty-val" id="qty-${item.id}">0</span>
                 <button class="qty-btn" onclick="changeQty(${item.id}, 1, ${item.precoBase})">+</button>
             </div>
@@ -69,11 +68,11 @@ async function loadCardapioForOrder() {
                 </span>
                 ${item.isSugestaoChefe ? `
                     <span class="menu-badge menu-badge-chef" style="background:#c0392b;color:white;">
-                        ★ Sugestão
+                        Sugestao
                     </span>` : ''}
             </div>
         </div>
-    `).join('') : '<div class="empty-state"><div class="empty-text">Sem itens para este período</div></div>';
+    `).join('') : '<div class="empty-state"><div class="empty-text">Sem itens para este periodo</div></div>';
 }
 
 function changeQty(id, delta, preco) {
@@ -98,6 +97,13 @@ function updateOrderType() {
     updateCartUI();
 }
 
+function calculateDeliveryAppTax(subtotal) {
+    if (!subtotal) return 0;
+    const hour = new Date().getHours();
+    const percentage = hour >= 18 ? 0.06 : 0.04;
+    return subtotal * percentage;
+}
+
 function updateCartUI() {
     const entries = Object.entries(orderCart);
     const cartDiv = document.getElementById('cartItems');
@@ -106,7 +112,7 @@ function updateCartUI() {
         <div class="cart-item">
             <div class="cart-item-info">
                 <div class="cart-item-name">${document.querySelector(`#oi-${id} .menu-item-name`)?.textContent || 'Item'}</div>
-                <div class="cart-item-qty">× ${qty}</div>
+                <div class="cart-item-qty">x ${qty}</div>
             </div>
             <div class="cart-item-price">R$ ${(qty * preco).toFixed(2)}</div>
         </div>
@@ -116,7 +122,14 @@ function updateCartUI() {
         </div>`;
 
     const subtotal = entries.reduce((s, [_, { qty, preco }]) => s + qty * preco, 0);
-    const taxa = parseFloat(document.getElementById('pedTaxaFixa')?.value || 0) || 0;
+    const tipo = document.getElementById('pedTipo')?.value || 'Presencial';
+
+    let taxa = 0;
+    if (tipo === 'DeliveryProprio') {
+        taxa = parseFloat(document.getElementById('pedTaxaFixa')?.value || 0) || 0;
+    } else if (tipo === 'DeliveryApp') {
+        taxa = calculateDeliveryAppTax(subtotal);
+    }
 
     document.getElementById('cartSubtotal').textContent = `R$ ${subtotal.toFixed(2)}`;
     document.getElementById('cartTaxa').textContent = `R$ ${taxa.toFixed(2)}`;
@@ -153,7 +166,6 @@ async function submitOrder() {
     if (r.ok) {
         showAlert('orderAlert', `Pedido #${r.data?.id} criado com sucesso! Total: R$ ${Number(r.data?.valorTotal).toFixed(2)}`, 'success');
 
-        // Resetar carrinho
         orderCart = {};
         updateCartUI();
         document.querySelectorAll('.qty-val').forEach(el => el.textContent = '0');

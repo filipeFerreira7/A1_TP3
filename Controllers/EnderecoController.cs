@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Controllers;
+namespace A1_order_system.Controllers;
 using A1_order_system.Dtos;
 using A1_order_system.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +13,12 @@ public class EnderecoController : BaseController
 
     public EnderecoController(EnderecoService service) => _service = service;
 
-    /// <summary>Lista todos os endereços do usuário autenticado.</summary>
     [HttpGet]
     public async Task<IActionResult> Listar()
-        => Ok(await _service.ListarAsync(UsuarioIdLogado));
+        => Ok(PerfilUsuarioLogado == "Admin"
+            ? await _service.ListarTodosAsync()
+            : await _service.ListarAsync(UsuarioIdLogado));
 
-    /// <summary>Adiciona um novo endereço de entrega.</summary>
     [HttpPost]
     public async Task<IActionResult> Adicionar([FromBody] EnderecoDto dto)
     {
@@ -26,7 +26,6 @@ public class EnderecoController : BaseController
         return CreatedAtAction(nameof(Listar), result);
     }
 
-    /// <summary>Remove um endereço pelo ID.</summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Remover(long id)
     {

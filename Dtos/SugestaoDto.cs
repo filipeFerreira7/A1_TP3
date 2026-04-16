@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Dtos
+namespace A1_order_system.Dtos
 {
     public record SugestaoDto
        (
@@ -8,7 +8,6 @@
     {
     }
 
-    // DTO para retornar sugestões do chefe (usado em SugestoesHojeAsync)
     public record SugestaoResponseDto
     {
         public long Id { get; init; }
@@ -19,7 +18,6 @@
         public decimal PrecoComDesconto { get; init; }
         public decimal Desconto { get; init; }
 
-        // Construtor para manter compatibilidade com DefinirSugestaoAsync
         public SugestaoResponseDto(long id, DateTime data, Periodo periodo, string nomeItem, decimal desconto)
         {
             Id = id;
@@ -27,12 +25,11 @@
             Periodo = periodo;
             NomeItem = nomeItem;
             Desconto = desconto;
-            // Preenche os preços (mesmo que não venha do banco ainda)
-            PrecoBase = 0; // será sobrescrito no Select se necessário
+            PrecoBase = 0;
             PrecoComDesconto = 0;
         }
 
-        // Construtor vazio para o Select do EF Core
         public SugestaoResponseDto() { }
     }
 }
+

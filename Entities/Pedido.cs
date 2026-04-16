@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Entities
+namespace A1_order_system.Entities
 {
     public class Pedido
     {
@@ -15,10 +15,6 @@
 
         public ICollection<PedidoItem> Itens { get; set; } = new List<PedidoItem>();
 
-        /// <summary>
-        /// Recalcula o valor total considerando preços dos itens,
-        /// descontos de Sugestão do Chefe e taxa do tipo de atendimento.
-        /// </summary>
         public void CalcularValorTotal(SugestaoChefe? sugestaoAlmoco, SugestaoChefe? sugestaoJantar)
         {
             decimal subtotal = 0m;
@@ -27,7 +23,6 @@
             {
                 var preco = item.ItemCardapio.PrecoBase;
 
-                // Aplica desconto se o item for a sugestão do chefe do dia/período
                 bool ehSugestaoAlmoco = sugestaoAlmoco != null
                     && sugestaoAlmoco.ItemCardapioId == item.ItemCardapioId
                     && sugestaoAlmoco.Data.Date == Data.Date

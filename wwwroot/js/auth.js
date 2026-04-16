@@ -1,5 +1,3 @@
-﻿// ====================== AUTH.JS ======================
-
 function switchAuthTab(tab) {
     document.querySelectorAll('.auth-tab').forEach((b, i) => {
         b.classList.toggle('active',
@@ -11,7 +9,6 @@ function switchAuthTab(tab) {
     document.getElementById('cadastroForm').style.display = tab === 'cadastro' ? '' : 'none';
     clearAlert('authAlert');
 }
-
 async function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const senha = document.getElementById('loginSenha').value.trim();
@@ -27,10 +24,16 @@ async function doLogin() {
 
     if (r.ok && r.data?.token) {
         token = r.data.token;
-        currentUser = { nome: r.data.nome, email: r.data.email };
+        currentUser = {
+            nome: r.data.nome,
+            email: r.data.email,
+            perfil: r.data.perfil || 'Cliente'
+        };
+
+        saveSession(token, currentUser);  
         enterApp();
     } else {
-        showAlert('authAlert', r.data?.erro || 'Credenciais inválidas.');
+        showAlert('authAlert', r.data?.erro || 'Credenciais inv�lidas.');
     }
 }
 
@@ -50,7 +53,13 @@ async function doCadastro() {
 
     if (r.ok && r.data?.token) {
         token = r.data.token;
-        currentUser = { nome: r.data.nome, email: r.data.email };
+        currentUser = {
+            nome: r.data.nome,
+            email: r.data.email,
+            perfil: r.data.perfil || 'Cliente'
+        };
+
+        saveSession(token, currentUser);
         enterApp();
     } else {
         showAlert('authAlert', r.data?.erro || 'Erro ao cadastrar.');

@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Controllers;
+namespace A1_order_system.Controllers;
 
 using A1_order_system.Dtos;
 using A1_order_system.Services;
@@ -16,15 +16,10 @@ public class PedidoController : BaseController
 
     public PedidoController(PedidoService service) => _service = service;
 
-    /// <summary>Lista todos os pedidos do usuário autenticado.</summary>
     [HttpGet]
     public async Task<IActionResult> Listar()
         => Ok(await _service.ListarPedidosUsuarioAsync(UsuarioIdLogado));
 
-    /// <summary>
-    /// Cria um novo pedido.
-    /// TipoAtendimento: "Presencial" | "DeliveryProprio" | "DeliveryApp"
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] PedidoDto dto)
     {

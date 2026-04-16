@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Services;
+namespace A1_order_system.Services;
 
 using A1_order_system.Data;
 using A1_order_system.Dtos;
@@ -15,14 +15,11 @@ public class ReservaService
     {
         DateTime horarioReserva = dto.Horario;
 
-        // ==================== TRATAMENTO DE FUSO HORÁRIO ====================
-        // Se o DateTime veio sem Kind (Unspecified), assumimos que é horário local do Brasil (UTC-3)
         if (horarioReserva.Kind == DateTimeKind.Unspecified)
         {
             horarioReserva = DateTime.SpecifyKind(horarioReserva, DateTimeKind.Local);
         }
 
-        // Converte para horário local explícito (para evitar offset automático)
         var horarioLocal = horarioReserva.ToLocalTime();
 
         Console.WriteLine($"[RESERVA DEBUG] Recebido do frontend: {horarioReserva:yyyy-MM-dd HH:mm:ss} (Kind: {horarioReserva.Kind})");
@@ -30,29 +27,28 @@ public class ReservaService
 
         var hora = horarioLocal.TimeOfDay;
 
-        // Validação de horário (19:00 - 22:00)
         if (hora < new TimeSpan(19, 0, 0) || hora > new TimeSpan(22, 0, 0))
         {
             throw new InvalidOperationException(
-                $"Reservas só são aceitas entre 19:00 e 22:00. Horário informado: {horarioLocal:HH:mm}");
+                $"Reservas s� s�o aceitas entre 19:00 e 22:00. Hor�rio informado: {horarioLocal:HH:mm}");
         }
 
-        // Validação de antecedência
-        if (horarioLocal.Date < DateTime.UtcNow.Date)
+        var hojeLocal = DateTime.Now.Date;
+
+        if (horarioLocal.Date <= hojeLocal)
         {
-            throw new InvalidOperationException("Não é possível reservar para datas passadas.");
+            throw new InvalidOperationException("A reserva deve ser feita com pelo menos 1 dia de anteced�ncia.");
         }
 
-        // Verifica conflito de mesa no mesmo dia
         bool conflito = await _context.Reservas.AnyAsync(r =>
             r.MesaId == dto.MesaId &&
             r.DataHora.Date == horarioLocal.Date);
 
         if (conflito)
-            throw new InvalidOperationException("Esta mesa já está reservada para esse dia.");
+            throw new InvalidOperationException("Esta mesa j� est� reservada para esse dia.");
 
         var mesa = await _context.Mesas.FindAsync(dto.MesaId)
-            ?? throw new KeyNotFoundException("Mesa não encontrada.");
+            ?? throw new KeyNotFoundException("Mesa n�o encontrada.");
 
         var reserva = new Reserva
         {
@@ -73,7 +69,6 @@ public class ReservaService
             reserva.NomeDoCliente,
             mesa.Numero);
     }
-    // Método renomeado e corrigido para evitar o erro de compilação
     public async Task<List<ReservaResponseDto>> ListarReservasAsync(long usuarioId)
     {
         return await _context.Reservas

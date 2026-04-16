@@ -1,4 +1,4 @@
-﻿using A1_order_system;
+using A1_order_system;
 using A1_order_system.Data;
 using A1_order_system.Dtos;
 using A1_order_system.Entities;
@@ -16,7 +16,6 @@ public class CardapioService
     {
         var hoje = DateTime.UtcNow.Date;
 
-        // Busca todas as sugestões de hoje
         var sugestoesHoje = await _context.SugestoesChefe
             .Where(s => s.Data.Date == hoje)
             .ToListAsync();
@@ -32,7 +31,6 @@ public class CardapioService
 
         return itens.Select(item =>
         {
-            // Encontra se este item é sugestão do chefe HOJE e do mesmo período
             var sugestao = sugestoesHoje.FirstOrDefault(s =>
                 s.ItemCardapioId == item.Id &&
                 s.Periodo == item.Periodo);
@@ -50,8 +48,8 @@ public class CardapioService
                 item.Descricao,
                 item.PrecoBase,
                 item.Periodo,
-                sugestao != null,           // isSugestaoChefe
-                precoComDesconto,           // precoComDesconto (pode ser null)
+                sugestao != null,
+                precoComDesconto,
                 item.Ingredientes.Select(ing => ing.Nome).ToList()
             );
         }).ToList();
@@ -63,7 +61,7 @@ public class CardapioService
             .CountAsync(i => i.Periodo == dto.Periodo);
 
         if (contePorPeriodo >= 20)
-            throw new InvalidOperationException($"O cardápio já possui 20 itens para o período {dto.Periodo}.");
+            throw new InvalidOperationException($"O card�pio j� possui 20 itens para o per�odo {dto.Periodo}.");
 
         var ingredientes = await _context.Ingredientes
             .Where(i => dto.IngredienteIds.Contains(i.Id))
@@ -83,3 +81,4 @@ public class CardapioService
         return item;
     }
 }
+

@@ -1,6 +1,4 @@
-﻿// ====================== RESERVAS.JS ======================
-
-async function loadReservas() {
+﻿async function loadReservas() {
     const container = document.getElementById('reservasList');
     if (!container) return;
 
@@ -24,12 +22,11 @@ async function loadReservas() {
         for (const res of list) {
             let d;
             try {
-                // Tenta vários possíveis nomes de campo que o backend pode retornar
                 const dateStr = res.dataHora || res.horario || res.DataHora || res.data;
                 d = dateStr ? new Date(dateStr) : new Date();
 
                 if (isNaN(d.getTime())) {
-                    d = new Date(); // fallback
+                    d = new Date();
                 }
             } catch (e) {
                 d = new Date();
@@ -38,6 +35,7 @@ async function loadReservas() {
             const day = d.getDate().toString().padStart(2, '0');
             const monthShort = d.toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
             const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const mesaNumero = res.numeroMesa || res.mesaNumero || res.mesaId || '-';
 
             html += `
                 <div class="reserva-card">
@@ -47,9 +45,9 @@ async function loadReservas() {
                     </div>
                     <div class="reserva-divider"></div>
                     <div class="reserva-info">
-                        <div class="reserva-name">${res.nomeDoCliente || '–'}</div>
+                        <div class="reserva-name">${res.nomeDoCliente || '-'}</div>
                         <div class="reserva-detail">
-                            Mesa ${res.mesaNumero || res.mesaId || '–'} · ${time}
+                            Mesa ${mesaNumero} | ${time}
                         </div>
                     </div>
                     <span class="stat-badge badge-gold">#${res.id}</span>
@@ -90,9 +88,7 @@ async function submitReserva() {
 
     if (r.ok) {
         closeModal('modalNovaReserva');
-        loadReservas();                    // Atualiza a lista
-
-        // Limpa formulário
+        loadReservas();
         document.getElementById('rNome').value = '';
         document.getElementById('rHorario').value = '';
         document.getElementById('rMesa').value = '';
@@ -103,6 +99,5 @@ async function submitReserva() {
     }
 }
 
-// Expor as funções para o onclick do HTML
 window.loadReservas = loadReservas;
 window.submitReserva = submitReserva;

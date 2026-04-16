@@ -1,4 +1,4 @@
-﻿namespace A1_order_system
+namespace A1_order_system
 {
     public enum Periodo
     {

@@ -4,7 +4,6 @@ using A1_order_system.Dtos;
 using A1_order_system.Entities;
 using Microsoft.EntityFrameworkCore;
 
-
 public class RelatorioService
 {
     private readonly RestauranteDbContext _context;
@@ -13,63 +12,106 @@ public class RelatorioService
 
     public async Task<List<RelatorioFaturamentoDto>> FaturamentoPorTipoAsync(DateTime inicio, DateTime fim)
     {
-        // Normaliza as datas para comparar apenas a parte da data (ignora hora)
         var dataInicio = inicio.Date;
-        var dataFim = fim.Date.AddDays(1).AddTicks(-1); // inclui o dia final completo
+        var dataFim = fim.Date.AddDays(1).AddTicks(-1);
 
         var pedidos = await _context.Pedidos
-            .Include(p => p.Atendimento)           // Essencial
+            .Include(p => p.Atendimento)
+            .Include(p => p.Itens)
+                .ThenInclude(pi => pi.ItemCardapio)
             .Where(p => p.Data >= dataInicio && p.Data <= dataFim)
             .ToListAsync();
-
-        Console.WriteLine($"[RELATORIO DEBUG] Período: {dataInicio:yyyy-MM-dd} a {dataFim:yyyy-MM-dd}");
-        Console.WriteLine($"[RELATORIO DEBUG] Quantidade de pedidos encontrados: {pedidos.Count}");
 
         if (!pedidos.Any())
             return new List<RelatorioFaturamentoDto>();
 
-        var faturamento = pedidos
-            .GroupBy(p => p.Atendimento switch
+        var sugestoes = await _context.SugestoesChefe
+            .Where(s => s.Data >= dataInicio && s.Data <= dataFim)
+            .ToListAsync();
+
+        return pedidos
+            .Select(p =>
             {
-                AtendimentoPresencial => "Presencial",
-                AtendimentoDeliveryProprio => "DeliveryProprio",
-                AtendimentoDeliveryApp => "DeliveryApp",
-                _ => "Desconhecido"
+                var tipoAtendimento = p.Atendimento switch
+                {
+                    AtendimentoPresencial => "Presencial",
+                    AtendimentoDeliveryProprio => "DeliveryProprio",
+                    AtendimentoDeliveryApp => "DeliveryApp",
+                    _ => "Desconhecido"
+                };
+
+                var subtotalItens = CalcularSubtotalItens(p, sugestoes);
+                var totalTaxas = Math.Max(0m, p.ValorTotal - subtotalItens);
+                var receitaLiquida = p.ValorTotal - totalTaxas;
+
+                return new
+                {
+                    TipoAtendimento = tipoAtendimento,
+                    TotalFaturado = p.ValorTotal,
+                    TotalTaxas = totalTaxas,
+                    ReceitaLiquida = receitaLiquida
+                };
             })
+            .GroupBy(p => p.TipoAtendimento)
             .Select(g => new RelatorioFaturamentoDto(
                 g.Key,
-                g.Sum(p => p.ValorTotal),
+                g.Sum(p => p.TotalFaturado),
+                g.Sum(p => p.TotalTaxas),
+                g.Sum(p => p.ReceitaLiquida),
                 g.Count()
             ))
             .OrderByDescending(r => r.TotalFaturado)
             .ToList();
-
-        Console.WriteLine($"[RELATORIO DEBUG] Faturamento gerado: {faturamento.Count} tipos");
-
-        return faturamento;
     }
+
+    private static decimal CalcularSubtotalItens(Pedido pedido, List<SugestaoChefe> sugestoes)
+    {
+        decimal subtotal = 0m;
+
+        foreach (var item in pedido.Itens)
+        {
+            var precoBase = item.ItemCardapio.PrecoBase;
+            var sugestao = sugestoes.FirstOrDefault(s =>
+                s.ItemCardapioId == item.ItemCardapioId &&
+                s.Periodo == pedido.Periodo &&
+                s.Data.Date == pedido.Data.Date);
+
+            var precoFinal = sugestao is null
+                ? precoBase
+                : sugestao.AplicarDesconto(precoBase);
+
+            subtotal += precoFinal * item.Quantidade;
+        }
+
+        return subtotal;
+    }
+
     public async Task<List<RelatorioItensMaisVendidosDto>> ItensMaisVendidosAsync(DateTime inicio, DateTime fim)
     {
-        // Busca todos os pedido-itens no período
         var pedidoItens = await _context.PedidoItens
             .Include(pi => pi.ItemCardapio)
             .Include(pi => pi.Pedido)
             .Where(pi => pi.Pedido.Data.Date >= inicio.Date && pi.Pedido.Data.Date <= fim.Date)
             .ToListAsync();
 
-        // Sugestões do período para marcar quantas vezes um item foi vendido como sugestão
         var sugestoes = await _context.SugestoesChefe
             .Where(s => s.Data.Date >= inicio.Date && s.Data.Date <= fim.Date)
             .ToListAsync();
-
-        var sugestaoIds = sugestoes.Select(s => s.ItemCardapioId).ToHashSet();
 
         return pedidoItens
             .GroupBy(pi => pi.ItemCardapioId)
             .Select(g =>
             {
                 var item = g.First().ItemCardapio;
-                int comoSugestao = g.Count(pi => sugestaoIds.Contains(pi.ItemCardapioId));
+                int comoSugestao = g.Sum(pi =>
+                {
+                    var foiSugestaoNoDia = sugestoes.Any(s =>
+                        s.ItemCardapioId == pi.ItemCardapioId &&
+                        s.Periodo == pi.ItemCardapio.Periodo &&
+                        s.Data.Date == pi.Pedido.Data.Date);
+
+                    return foiSugestaoNoDia ? pi.Quantidade : 0;
+                });
 
                 return new RelatorioItensMaisVendidosDto(
                     item.Id,

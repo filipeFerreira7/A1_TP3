@@ -1,5 +1,4 @@
-﻿// ====================== SUGESTAO-CHEFE.JS ======================
-
+﻿
 async function loadSugestoesChefe() {
     const container = document.getElementById('sugestoesList');
     if (!container) return;
@@ -22,7 +21,7 @@ async function loadSugestoesChefe() {
         if (sugestoes.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1 / -1; padding:80px 20px; text-align:center;">
-                    <div style="font-size:64px; margin-bottom:16px; opacity:0.6;">⭐</div>
+                 <div style="font-size:64px; margin-bottom:16px; opacity:0.6;">⭐</div>
                     <div class="empty-text">Nenhuma Sugestão do Chefe definida hoje</div>
                     <div style="color:var(--text3); margin-top:8px;">Clique em "+ Nova Sugestão" para definir.</div>
                 </div>`;
@@ -60,7 +59,6 @@ async function loadSugestoesChefe() {
         container.innerHTML = `<div class="alert alert-error" style="grid-column: 1 / -1;">Falha ao carregar sugestões.</div>`;
     }
 }
-// ==================== ABRIR MODAL NOVA SUGESTÃO ====================
 async function openNovaSugestaoModal() {
     const modalBody = document.getElementById('modalSugestaoBody');
     const alertDiv = document.getElementById('modalSugestaoAlert');
@@ -73,7 +71,6 @@ async function openNovaSugestaoModal() {
         return;
     }
 
-    // Mostra loading enquanto carrega os pratos
     modalBody.innerHTML = '<div class="spinner" style="margin:60px auto; display:block;"></div>';
 
     try {
@@ -119,7 +116,6 @@ async function openNovaSugestaoModal() {
     }
 }
 
-// ==================== SUBMIT NOVA SUGESTÃO ====================
 async function submitNovaSugestao() {
     const periodo = parseInt(document.getElementById('sugestaoPeriodo').value);
     const itemCardapioId = parseInt(document.getElementById('sugestaoItemId').value);
@@ -142,7 +138,7 @@ async function submitNovaSugestao() {
 
         if (r.ok) {
             closeModal('modalNovaSugestao');
-            loadSugestoesChefe();           // Atualiza lista
+            loadSugestoesChefe();
             if (document.getElementById('page-dashboard').classList.contains('active')) {
                 loadDashboard();
             }
@@ -155,3 +151,4 @@ async function submitNovaSugestao() {
         showAlert('modalSugestaoAlert', 'Erro de comunicação com o servidor.', 'error');
     }
 }
+

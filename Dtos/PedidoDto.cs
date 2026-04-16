@@ -1,14 +1,14 @@
-﻿using A1_order_system;
+using A1_order_system;
 
 namespace A1_order_system.Dtos
 {
     public record PedidoDto
         (
         Periodo Periodo,
-        string TipoAtendimento,        // "Presencial" | "DeliveryProprio" | "DeliveryApp"
+        string TipoAtendimento,
         List<PedidoItemDto> Itens,
-        decimal? TaxaFixa,             // para DeliveryProprio
-        string? NomeApp,               // para DeliveryApp
+        decimal? TaxaFixa,
+        string? NomeApp,
         long? EnderecoId
         );
     
@@ -41,3 +41,4 @@ namespace A1_order_system.Dtos
         decimal PrecoUnitario,
         bool TemDesconto);
 }
+

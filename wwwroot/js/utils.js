@@ -1,11 +1,133 @@
-Ôªø// ====================== UTILS.JS ======================
-// Fun√ß√µes globais reutiliz√°veis
+
 
 let token = null;
 let currentUser = {};
 let cardapioData = [];
 let orderCart = {};
 let currentFilter = null;
+
+function setAuthState(nextToken, nextUser) {
+    token = nextToken || null;
+    currentUser = nextUser || {};
+}
+
+function parseJwtPayload(jwt) {
+    if (!jwt) return null;
+
+    try {
+        const parts = jwt.split('.');
+        if (parts.length !== 3) return null;
+
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+        return JSON.parse(atob(padded));
+    } catch (e) {
+        console.error('Erro ao decodificar token JWT:', e);
+        return null;
+    }
+}
+
+function buildUserFromToken(jwt) {
+    const payload = parseJwtPayload(jwt);
+    if (!payload) return null;
+
+    const nome =
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+        payload.name ||
+        '';
+
+    const email =
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+        payload.email ||
+        '';
+
+    const perfil =
+        payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+        payload.role ||
+        'Cliente';
+
+    if (!nome && !email) return null;
+
+    return { nome, email, perfil };
+}
+
+function parseStoredUser(userStr, jwt) {
+    if (!userStr) return buildUserFromToken(jwt);
+
+    try {
+        const parsed = JSON.parse(userStr);
+        if (parsed && typeof parsed === 'object') {
+            return {
+                nome: parsed.nome || '',
+                email: parsed.email || '',
+                perfil: parsed.perfil || 'Cliente'
+            };
+        }
+    } catch (e) {
+        console.warn('currentUser inv·lido no localStorage. Recriando a partir do token.', e);
+    }
+
+    return buildUserFromToken(jwt);
+}
+
+function isTokenExpired(jwt) {
+    const payload = parseJwtPayload(jwt);
+    if (!payload?.exp) return false;
+
+    return payload.exp * 1000 <= Date.now();
+}
+
+function saveSession(token, user) {
+    if (!token || !user) return;
+
+    try {
+        setAuthState(token, user);
+        localStorage.setItem('token', token);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('Sess„o salva com sucesso');
+    } catch (e) {
+        console.error('Erro ao salvar sess„o:', e);
+    }
+}
+
+function loadSession() {
+    try {
+        const savedToken = localStorage.getItem('token');
+        const userStr = localStorage.getItem('currentUser');
+
+        if (savedToken) {
+            if (isTokenExpired(savedToken)) {
+                clearSession();
+                return false;
+            }
+
+            const user = parseStoredUser(userStr, savedToken);
+            if (!user) {
+                clearSession();
+                return false;
+            }
+
+            setAuthState(savedToken, user);
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            console.log('Sess„o carregada com sucesso');
+            return true;
+        }
+    } catch (e) {
+        console.error('Erro ao carregar sess„o:', e);
+        clearSession();
+    }
+    return false;
+}
+
+function clearSession() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    setAuthState(null, {});
+}
+
+function isAdmin() {
+    return currentUser?.perfil === 'Admin';
+}
 
 async function api(method, path, body = null, auth = false) {
     const headers = { 'Content-Type': 'application/json' };
@@ -43,11 +165,9 @@ function openModal(id) {
 function closeModal(id) {
     const modal = document.getElementById(id);
     modal.classList.remove('open');
-    // Limpa alerts dentro do modal
     modal.querySelectorAll('.alert').forEach(a => a.remove());
 }
 
-// Fechar modal ao clicar no overlay
 document.addEventListener('click', e => {
     if (e.target.classList.contains('modal-overlay')) {
         e.target.classList.remove('open');

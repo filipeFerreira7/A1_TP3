@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Dtos
+namespace A1_order_system.Dtos
 {
     public record ReservaDto
         (

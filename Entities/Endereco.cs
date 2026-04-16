@@ -1,4 +1,4 @@
-﻿namespace A1_order_system.Entities
+namespace A1_order_system.Entities
 {
     public class Endereco
     {

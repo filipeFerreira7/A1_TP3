@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurante do Filipão - Sistema de Gestão</title>
 
@@ -66,16 +67,16 @@
             <div class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-label">Principal</div>
-                    <button class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">◈</span> Dashboard</button>
+                    <button id="navDashboard" class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">◈</span> Dashboard</button>
                     <button class="nav-item" onclick="navigate('cardapio')"><span class="nav-icon">◉</span> Cardápio</button>
-                    <button class="nav-item" onclick="navigate('sugestao-chefe')"><span class="nav-icon">★</span> Sugestão do Chefe</button>
+                    <button id="navSugestaoChefe" class="nav-item" onclick="navigate('sugestao-chefe')"><span class="nav-icon">★</span> Sugestão do Chefe</button>
                     <button class="nav-item" onclick="navigate('pedidos')"><span class="nav-icon">◎</span> Pedidos</button>
                     <button class="nav-item" onclick="navigate('reservas')"><span class="nav-icon">⊟</span> Reservas</button>
                 </div>
                 <div class="nav-section">
                     <div class="nav-label">Gestão</div>
                     <button class="nav-item" onclick="navigate('enderecos')"><span class="nav-icon">⊕</span> Endereços</button>
-                    <button class="nav-item" onclick="navigate('relatorios')"><span class="nav-icon">⊞</span> Relatórios</button>
+                    <button id="navRelatorios" class="nav-item" onclick="navigate('relatorios')"><span class="nav-icon">⊞</span> Relatórios</button>
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -113,7 +114,7 @@
             <div id="page-cardapio" class="page">
                 <div class="page-header">
                     <div class="page-title"><h2>Cardápio</h2><p>Gerencie os itens do cardápio</p></div>
-                    <button class="btn btn-primary" onclick="openModal('modalNovoItem')">+ Novo Item</button>
+                    <button id="btnNovoItem" class="btn btn-primary" onclick="openModal('modalNovoItem')">+ Novo Item</button>
                 </div>
                 <div class="filter-pills">
                     <button class="pill active" onclick="filterCardapio(null, this)">Todos</button>
@@ -130,7 +131,7 @@
                         <h2>Sugestão do Chefe</h2>
                         <p>Defina a sugestão diária de almoço e jantar (máximo 1 por período)</p>
                     </div>
-                    <button class="btn btn-primary" onclick="openNovaSugestaoModal()">
+                    <button id="btnNovaSugestao" class="btn btn-primary" onclick="openNovaSugestaoModal()">
                         + Nova Sugestão
                     </button>
                 </div>
@@ -192,8 +193,12 @@
                             </div>
                             <div id="deliveryAppField" style="display:none">
                                 <div class="form-group">
-                                    <label class="form-label">Nome do App</label>
-                                    <input class="form-control" type="text" id="pedNomeApp" placeholder="iFood, Rappi...">
+                                    <label class="form-label">Aplicativo</label>
+                                    <select class="form-control" id="pedNomeApp" onchange="updateCartUI()">
+                                        <option value="iFood">iFood</option>
+                                        <option value="Rappi">Rappi</option>
+                                        <option value="99Food">99Food</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -353,15 +358,15 @@
     </div>
 
     <!-- SCRIPTS - Ordem importante! -->
-    <script src="/js/utils.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/dashboard.js"></script>
-    <script src="/js/cardapio.js"></script>
-    <script src="/js/pedidos.js"></script>
-    <script src="/js/reservas.js"></script>
-    <script src="/js/enderecos.js"></script>
-    <script src="/js/relatorios.js"></script>
-    <script src="/js/app.js"></script>
-    <script src="/js/sugestao-chefe.js"></script>
+    <script src="/js/utils.js?v=20260415-5"></script>
+    <script src="/js/auth.js?v=20260415-5"></script>
+    <script src="/js/dashboard.js?v=20260415-5"></script>
+    <script src="/js/cardapio.js?v=20260415-5"></script>
+    <script src="/js/pedidos.js?v=20260415-8"></script>
+    <script src="/js/reservas.js?v=20260415-6"></script>
+    <script src="/js/enderecos.js?v=20260415-5"></script>
+    <script src="/js/relatorios.js?v=20260415-7"></script>
+    <script src="/js/app.js?v=20260415-5"></script>
+    <script src="/js/sugestao-chefe.js?v=20260415-5"></script>
 </body>
 </html>
