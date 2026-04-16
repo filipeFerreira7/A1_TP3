@@ -1,28 +1,42 @@
-﻿async function loadPedidos() {
+async function loadPedidos() {
     const tbody = document.getElementById('pedidosTable');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;"><span class="spinner"></span></td></tr>';
+    const thead = document.getElementById('pedidosHeader');
+    const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isAdmin = storedUser?.perfil === 'Admin';
+    const colCount = isAdmin ? 8 : 6;
+    
+    const btnNovoPedido = document.getElementById('btnNovoPedido');
+    if (btnNovoPedido) btnNovoPedido.style.display = isAdmin ? 'none' : '';
+    
+    thead.innerHTML = `<tr>${isAdmin ? '<th>Cliente</th>' : ''}<th>#</th><th>Data</th><th>Período</th><th>Tipo</th>${isAdmin ? '<th>Endereço</th>' : ''}<th>Itens</th><th>Total</th></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align:center;padding:30px;"><span class="spinner"></span></td></tr>`;
 
-    const r = await api('GET', '/api/pedidos', null, true);
+    const endpoint = isAdmin ? '/api/pedidos/todos' : '/api/pedidos';
+    const r = await api('GET', endpoint, null, true);
     const peds = r.ok ? (r.data || []) : [];
 
     tbody.innerHTML = peds.length ? peds.map(p => `
         <tr>
+            ${isAdmin ? `<td>${p.nomeUsuario || '–'}</td>` : ''}
             <td class="td-name">#${p.id}</td>
             <td>${new Date(p.data).toLocaleDateString('pt-BR')}</td>
             <td><span class="menu-badge ${p.periodo === 0 ? 'menu-badge-almoco' : 'menu-badge-jantar'}">
                 ${p.periodo === 0 ? 'Almoço' : 'Jantar'}
             </span></td>
             <td>${p.tipoAtendimento || 'Presencial'}</td>
+            ${isAdmin ? `<td>${p.endereco ? `${p.endereco.logradouro}, ${p.endereco.cidade}/${p.endereco.estado}` : 'Retirada no local'}</td>` : ''}
             <td>${p.itens?.length || 0} itens</td>
             <td style="color:var(--gold);font-weight:600;">R$ ${Number(p.valorTotal).toFixed(2)}</td>
         </tr>
     `).join('') : `
         <tr>
-            <td colspan="6">
+            <td colspan="${colCount}">
                 <div class="empty-state"><div class="empty-text">Nenhum pedido encontrado</div></div>
             </td>
         </tr>`;
 }
+
+﻿let taxaDeliveryProprio = 8.00;
 
 async function initNovoPedido() {
     orderCart = {};
@@ -34,6 +48,20 @@ async function initNovoPedido() {
     sel.innerHTML = ends.length
         ? ends.map(e => `<option value="${e.id}">${e.logradouro} - ${e.cidade}/${e.estado}</option>`).join('')
         : '<option value="">Nenhum endereco cadastrado</option>';
+
+    const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isAdmin = storedUser?.perfil === 'Admin';
+
+    if (isAdmin) {
+        const configR = await api('GET', '/api/config/taxa-delivery', null, true);
+        if (configR.ok && configR.data?.taxa) {
+            taxaDeliveryProprio = parseFloat(configR.data.taxa);
+        }
+    }
+
+    const taxaInput = document.getElementById('pedTaxaFixa');
+    taxaInput.value = taxaDeliveryProprio.toFixed(2);
+    taxaInput.readOnly = !isAdmin;
 
     await loadCardapioForOrder();
     updateOrderType();
@@ -148,13 +176,23 @@ async function submitOrder() {
     }
 
     const tipo = document.getElementById('pedTipo').value;
+    const periodo = parseInt(document.getElementById('pedPeriodo').value);
+    
+    if (tipo !== 'Presencial') {
+        const enderecoId = parseInt(document.getElementById('pedEnderecoId').value);
+        if (!enderecoId) {
+            showAlert('orderAlert', 'Cadastre um endereco de entrega antes de fazer um pedido de delivery.', 'error');
+            return;
+        }
+    }
+
     const body = {
-        periodo: parseInt(document.getElementById('pedPeriodo').value),
+        periodo: periodo,
         tipoAtendimento: tipo,
         itens: itens,
-        taxaFixa: tipo === 'DeliveryProprio' ? (parseFloat(document.getElementById('pedTaxaFixa').value) || null) : null,
+        taxaFixa: tipo === 'DeliveryProprio' ? (parseFloat(document.getElementById('pedTaxaFixa').value) || taxaDeliveryProprio) : null,
         nomeApp: tipo === 'DeliveryApp' ? document.getElementById('pedNomeApp').value : null,
-        enderecoId: tipo !== 'Presencial' ? (parseInt(document.getElementById('pedEnderecoId').value) || null) : null,
+        enderecoId: tipo !== 'Presencial' ? parseInt(document.getElementById('pedEnderecoId').value) : null,
     };
 
     document.getElementById('orderSpinner').style.display = '';
@@ -171,6 +209,7 @@ async function submitOrder() {
         document.querySelectorAll('.qty-val').forEach(el => el.textContent = '0');
         document.querySelectorAll('.menu-item-card').forEach(el => el.classList.remove('selected'));
     } else {
-        showAlert('orderAlert', r.data?.erro || 'Erro ao criar pedido.', 'error');
+        let msgErro = r.data?.erro || 'Erro ao criar pedido.';
+        showAlert('orderAlert', msgErro, 'error');
     }
 }

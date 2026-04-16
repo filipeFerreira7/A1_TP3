@@ -21,6 +21,7 @@ builder.Services.AddScoped<SugestaoService>();
 builder.Services.AddScoped<PedidoService>();
 builder.Services.AddScoped<ReservaService>();
 builder.Services.AddScoped<RelatorioService>();
+builder.Services.AddScoped<ConfigService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key não configurada.");

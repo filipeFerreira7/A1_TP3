@@ -13,6 +13,9 @@ namespace A1_order_system.Entities
         public long AtendimentoId { get; set; }
         public Atendimento Atendimento { get; set; } = null!;
 
+        public long? EnderecoId { get; set; }
+        public Endereco? Endereco { get; set; }
+
         public ICollection<PedidoItem> Itens { get; set; } = new List<PedidoItem>();
 
         public void CalcularValorTotal(SugestaoChefe? sugestaoAlmoco, SugestaoChefe? sugestaoJantar)

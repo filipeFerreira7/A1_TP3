@@ -13,32 +13,34 @@ namespace A1_order_system.Services
 
         public async Task<PedidoResponseDto> CriarPedidoAsync(PedidoDto dto, long usuarioId)
         {
+            if (dto.TipoAtendimento != "Presencial" && dto.EnderecoId == null)
+                throw new InvalidOperationException("Endereco de entrega e obrigatorio para pedidos de delivery.");
+
             var idsItens = dto.Itens.Select(i => i.ItemCardapioId).ToList();
             var itensCardapio = await _context.ItensCardapio
                 .Where(i => idsItens.Contains(i.Id))
                 .ToListAsync();
 
             if (itensCardapio.Count != idsItens.Count)
-                throw new KeyNotFoundException("Um ou mais itens do cardápio não foram encontrados.");
+                throw new KeyNotFoundException("Um ou mais itens do cardapio nao foram encontrados.");
 
+            var periodoNome = dto.Periodo == Periodo.Almoco ? "Almoco" : "Jantar";
             var itensWrongPeriod = itensCardapio.Where(i => i.Periodo != dto.Periodo).ToList();
             if (itensWrongPeriod.Any())
+            {
+                var periodoItem = itensWrongPeriod[0].Periodo == Periodo.Almoco ? "Almoco" : "Jantar";
                 throw new InvalidOperationException(
-                    $"Os itens [{string.Join(", ", itensWrongPeriod.Select(i => i.Nome))}] " +
-                    $"não pertencem ao período {dto.Periodo}.");
+                    $"O item '{string.Join(", ", itensWrongPeriod.Select(i => i.Nome))}' pertence ao periodo de {periodoItem} e nao pode ser adicionado a um pedido de {periodoNome}.");
+            }
+
+            var taxaFixa = dto.TaxaFixa ?? 8.00m;
 
             Atendimento atendimento = dto.TipoAtendimento switch
             {
                 "Presencial" => new AtendimentoPresencial(),
-                "DeliveryProprio" => new AtendimentoDeliveryProprio
-                {
-                    TaxaFixa = dto.TaxaFixa ?? throw new InvalidOperationException("TaxaFixa obrigatória para Delivery Próprio.")
-                },
-                "DeliveryApp" => new AtendimentoDeliveryApp
-                {
-                    NomeApp = dto.NomeApp ?? throw new InvalidOperationException("NomeApp obrigatório para Delivery por Aplicativo.")
-                },
-                _ => throw new InvalidOperationException($"Tipo de atendimento inválido: {dto.TipoAtendimento}.")
+                "DeliveryProprio" => new AtendimentoDeliveryProprio { TaxaFixa = taxaFixa },
+                "DeliveryApp" => new AtendimentoDeliveryApp { NomeApp = dto.NomeApp ?? "iFood" },
+                _ => throw new InvalidOperationException($"Tipo de atendimento invalido: {dto.TipoAtendimento}.")
             };
 
             _context.Atendimentos.Add(atendimento);
@@ -49,7 +51,8 @@ namespace A1_order_system.Services
                 Data = DateTime.UtcNow,
                 Periodo = dto.Periodo,
                 UsuarioId = usuarioId,
-                AtendimentoId = atendimento.Id
+                AtendimentoId = atendimento.Id,
+                EnderecoId = dto.EnderecoId
             };
 
             foreach (var dtoItem in dto.Itens)
@@ -84,6 +87,47 @@ namespace A1_order_system.Services
         {
             var pedidos = await _context.Pedidos
                 .Include(p => p.Atendimento)
+                .Include(p => p.Usuario)
+                .Include(p => p.Endereco)
+                .Include(p => p.Itens).ThenInclude(pi => pi.ItemCardapio)
+                .Where(p => p.UsuarioId == usuarioId)
+                .OrderByDescending(p => p.Data)
+                .ToListAsync();
+
+            var hoje = DateTime.UtcNow.Date;
+            var sugestaoAlmoco = await _context.SugestoesChefe
+                .FirstOrDefaultAsync(s => s.Data.Date == hoje && s.Periodo == Periodo.Almoco);
+            var sugestaoJantar = await _context.SugestoesChefe
+                .FirstOrDefaultAsync(s => s.Data.Date == hoje && s.Periodo == Periodo.Jantar);
+
+            return pedidos.Select(p => MapearResponse(p, sugestaoAlmoco, sugestaoJantar)).ToList();
+        }
+
+        public async Task<List<PedidoResponseDto>> ListarTodosPedidosAsync()
+        {
+            var pedidos = await _context.Pedidos
+                .Include(p => p.Atendimento)
+                .Include(p => p.Usuario)
+                .Include(p => p.Endereco)
+                .Include(p => p.Itens).ThenInclude(pi => pi.ItemCardapio)
+                .OrderByDescending(p => p.Data)
+                .ToListAsync();
+
+            var hoje = DateTime.UtcNow.Date;
+            var sugestaoAlmoco = await _context.SugestoesChefe
+                .FirstOrDefaultAsync(s => s.Data.Date == hoje && s.Periodo == Periodo.Almoco);
+            var sugestaoJantar = await _context.SugestoesChefe
+                .FirstOrDefaultAsync(s => s.Data.Date == hoje && s.Periodo == Periodo.Jantar);
+
+            return pedidos.Select(p => MapearResponse(p, sugestaoAlmoco, sugestaoJantar)).ToList();
+        }
+
+        public async Task<List<PedidoResponseDto>> ListarPedidosPorUsuarioAsync(long usuarioId)
+        {
+            var pedidos = await _context.Pedidos
+                .Include(p => p.Atendimento)
+                .Include(p => p.Usuario)
+                .Include(p => p.Endereco)
                 .Include(p => p.Itens).ThenInclude(pi => pi.ItemCardapio)
                 .Where(p => p.UsuarioId == usuarioId)
                 .OrderByDescending(p => p.Data)
@@ -133,8 +177,16 @@ namespace A1_order_system.Services
 
             return new PedidoResponseDto(
                 pedido.Id, pedido.Data, pedido.Periodo,
-                tipoAtendimento, pedido.ValorTotal, itensResponse);
+                tipoAtendimento, pedido.ValorTotal, itensResponse,
+                pedido.Usuario?.Nome,
+                pedido.UsuarioId,
+                pedido.Endereco != null
+                    ? new EnderecoResponseDto(
+                        pedido.Endereco.Id,
+                        pedido.Endereco.Logradouro,
+                        pedido.Endereco.Cidade,
+                        pedido.Endereco.Estado)
+                    : null);
         }
     }
 }
-

@@ -1,9 +1,13 @@
 ﻿async function loadDashboard() {
     try {
+        const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const isAdmin = storedUser?.perfil === 'Admin';
+        const pedidosEndpoint = isAdmin ? '/api/pedidos/todos' : '/api/pedidos';
+        
         const [rCard, rSug, rPed, rRes, rEnd] = await Promise.all([
             api('GET', '/api/cardapio'),
             api('GET', '/api/cardapio/sugestoes-hoje'),
-            api('GET', '/api/pedidos', null, true),
+            api('GET', pedidosEndpoint, null, true),
             api('GET', '/api/reservas', null, true),
             api('GET', '/api/enderecos', null, true)
         ]);

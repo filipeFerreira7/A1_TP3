@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -145,12 +145,12 @@
             <div id="page-pedidos" class="page">
                 <div class="page-header">
                     <div class="page-title"><h2>Pedidos</h2><p>Histórico de pedidos</p></div>
-                    <button class="btn btn-primary" onclick="navigate('novo-pedido')">+ Novo Pedido</button>
+                    <button id="btnNovoPedido" class="btn btn-primary" onclick="navigate('novo-pedido')">+ Novo Pedido</button>
                 </div>
                 <div class="card">
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>#</th><th>Data</th><th>Período</th><th>Tipo</th><th>Itens</th><th>Total</th></tr></thead>
+                            <thead id="pedidosHeader"></thead>
                             <tbody id="pedidosTable"></tbody>
                         </table>
                     </div>
@@ -360,9 +360,9 @@
     <!-- SCRIPTS - Ordem importante! -->
     <script src="/js/utils.js?v=20260415-5"></script>
     <script src="/js/auth.js?v=20260415-5"></script>
-    <script src="/js/dashboard.js?v=20260415-5"></script>
+    <script src="/js/dashboard.js?v=20260416-1"></script>
     <script src="/js/cardapio.js?v=20260415-5"></script>
-    <script src="/js/pedidos.js?v=20260415-8"></script>
+    <script src="/js/pedidos.js?v=20260416-5"></script>
     <script src="/js/reservas.js?v=20260415-6"></script>
     <script src="/js/enderecos.js?v=20260415-5"></script>
     <script src="/js/relatorios.js?v=20260415-7"></script>

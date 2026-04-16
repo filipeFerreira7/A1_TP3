@@ -16,7 +16,7 @@ public class ReservaController : BaseController
 
     [HttpGet]
     public async Task<IActionResult> Listar()
-        => Ok(await _service.ListarReservasAsync(UsuarioIdLogado));
+        => Ok(await _service.ListarReservasAsync(UsuarioIdLogado, PerfilUsuarioLogado == "Admin"));
 
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] ReservaDto dto)

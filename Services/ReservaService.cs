@@ -30,14 +30,14 @@ public class ReservaService
         if (hora < new TimeSpan(19, 0, 0) || hora > new TimeSpan(22, 0, 0))
         {
             throw new InvalidOperationException(
-                $"Reservas só são aceitas entre 19:00 e 22:00. Horário informado: {horarioLocal:HH:mm}");
+                $"Reservas sï¿½ sï¿½o aceitas entre 19:00 e 22:00. Horï¿½rio informado: {horarioLocal:HH:mm}");
         }
 
         var hojeLocal = DateTime.Now.Date;
 
         if (horarioLocal.Date <= hojeLocal)
         {
-            throw new InvalidOperationException("A reserva deve ser feita com pelo menos 1 dia de antecedência.");
+            throw new InvalidOperationException("A reserva deve ser feita com pelo menos 1 dia de antecedï¿½ncia.");
         }
 
         bool conflito = await _context.Reservas.AnyAsync(r =>
@@ -45,10 +45,10 @@ public class ReservaService
             r.DataHora.Date == horarioLocal.Date);
 
         if (conflito)
-            throw new InvalidOperationException("Esta mesa já está reservada para esse dia.");
+            throw new InvalidOperationException("Esta mesa jï¿½ estï¿½ reservada para esse dia.");
 
         var mesa = await _context.Mesas.FindAsync(dto.MesaId)
-            ?? throw new KeyNotFoundException("Mesa não encontrada.");
+            ?? throw new KeyNotFoundException("Mesa nï¿½o encontrada.");
 
         var reserva = new Reserva
         {
@@ -69,12 +69,16 @@ public class ReservaService
             reserva.NomeDoCliente,
             mesa.Numero);
     }
-    public async Task<List<ReservaResponseDto>> ListarReservasAsync(long usuarioId)
+    public async Task<List<ReservaResponseDto>> ListarReservasAsync(long usuarioId, bool isAdmin)
     {
-        return await _context.Reservas
-            .Include(r => r.Mesa)
-            .Where(r => r.UsuarioId == usuarioId)
-            .OrderBy(r => r.DataHora)
+        IQueryable<Reserva> query = _context.Reservas.Include(r => r.Mesa);
+
+        if (!isAdmin)
+        {
+            query = query.Where(r => r.UsuarioId == usuarioId);
+        }
+
+        return await query.OrderBy(r => r.DataHora)
             .Select(r => new ReservaResponseDto(
                 r.Id,
                 r.DataHora,

@@ -30,7 +30,10 @@ namespace A1_order_system.Dtos {
         Periodo Periodo,
         string TipoAtendimento,
         decimal ValorTotal,
-        List<PedidoItemResponseDto> Itens);
+        List<PedidoItemResponseDto> Itens,
+        string? NomeUsuario = null,
+        long? UsuarioId = null,
+        EnderecoResponseDto? Endereco = null);
 }
 namespace A1_order_system.Dtos
 {

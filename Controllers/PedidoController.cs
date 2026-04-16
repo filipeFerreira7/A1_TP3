@@ -5,8 +5,6 @@ using A1_order_system.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
-
 [ApiController]
 [Route("api/pedidos")]
 [Authorize]
@@ -19,6 +17,16 @@ public class PedidoController : BaseController
     [HttpGet]
     public async Task<IActionResult> Listar()
         => Ok(await _service.ListarPedidosUsuarioAsync(UsuarioIdLogado));
+
+    [HttpGet("todos")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ListarTodos()
+        => Ok(await _service.ListarTodosPedidosAsync());
+
+    [HttpGet("usuario/{usuarioId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ListarPorUsuario(long usuarioId)
+        => Ok(await _service.ListarPedidosPorUsuarioAsync(usuarioId));
 
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] PedidoDto dto)

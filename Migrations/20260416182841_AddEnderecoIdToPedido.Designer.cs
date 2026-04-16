@@ -4,6 +4,7 @@ using A1_order_system.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace A1_order_system.Migrations
 {
     [DbContext(typeof(RestauranteDbContext))]
-    partial class RestauranteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416182841_AddEnderecoIdToPedido")]
+    partial class AddEnderecoIdToPedido
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,30 +45,6 @@ namespace A1_order_system.Migrations
                     b.HasDiscriminator<string>("TipoAtendimento").HasValue("Atendimento");
 
                     b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("A1_order_system.Entities.Configuracao", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Chave")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Valor")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Chave")
-                        .IsUnique();
-
-                    b.ToTable("Configuracoes");
                 });
 
             modelBuilder.Entity("A1_order_system.Entities.Endereco", b =>

@@ -20,6 +20,7 @@ namespace A1_order_system.Data
         public DbSet<AtendimentoDeliveryApp> AtendimentosDeliveryApp => Set<AtendimentoDeliveryApp>();
         public DbSet<Mesa> Mesas => Set<Mesa>();
         public DbSet<Reserva> Reservas => Set<Reserva>();
+        public DbSet<Configuracao> Configuracoes => Set<Configuracao>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -127,6 +128,12 @@ namespace A1_order_system.Data
             modelBuilder.Entity<AtendimentoDeliveryProprio>(e =>
             {
                 e.Property(a => a.TaxaFixa).HasColumnType("decimal(10,2)");
+            });
+
+            modelBuilder.Entity<Configuracao>(e =>
+            {
+                e.HasKey(c => c.Id);
+                e.HasIndex(c => c.Chave).IsUnique();
             });
 
         }
