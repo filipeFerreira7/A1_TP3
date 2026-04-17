@@ -18,7 +18,7 @@ Sistema de gestão completo para restaurantes, desenvolvido como projeto acadêm
 | **Disciplina**     | Tópicos III                          |
 | **Professor**       | Jose Itamar Mendes de Souza Junior   |
 | **Aluno**          | Filipe Ferreira                       |
-| **Tecnologia**     | C# .NET 8.0                          |
+| **Tecnologia**     | C# .NET 10.0                          |
 
 ---
 
