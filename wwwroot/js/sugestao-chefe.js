@@ -1,4 +1,4 @@
-﻿
+
 async function loadSugestoesChefe() {
     const container = document.getElementById('sugestoesList');
     if (!container) return;
@@ -82,13 +82,6 @@ async function openNovaSugestaoModal() {
 
         const items = r.data || [];
 
-        let options = '<option value="">Selecione um prato...</option>';
-
-        items.forEach(item => {
-            const periodoTexto = item.periodo === 0 ? 'Almoço' : 'Jantar';
-            options += `<option value="${item.id}">${item.nome} — ${periodoTexto}</option>`;
-        });
-
         modalBody.innerHTML = `
             <div class="form-group">
                 <label class="form-label">Período</label>
@@ -98,12 +91,40 @@ async function openNovaSugestaoModal() {
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Prato</label>
-                <select class="form-control" id="sugestaoItemId">
-                    ${options}
-                </select>
+                <label class="form-label">Selecione um prato</label>
+                <div id="sugestaoItemGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-top:8px;"></div>
+                <input type="hidden" id="sugestaoItemId" value="">
             </div>
         `;
+
+        function renderItemGrid(periodoFilter) {
+            const grid = document.getElementById('sugestaoItemGrid');
+            const filteredItems = items.filter(i => i.periodo == periodoFilter);
+
+            grid.innerHTML = filteredItems.length ? filteredItems.map(item => `
+                <div class="menu-item-card" id="sg-item-${item.id}" onclick="selectSugestaoItem(${item.id}, ${item.periodo})" style="cursor:pointer;">
+                    <div class="menu-item-name">${item.nome}</div>
+                    <div class="menu-item-desc">${item.descricao || ''}</div>
+                    <div class="menu-item-footer">
+                        <span class="menu-price">R$ ${Number(item.precoBase).toFixed(2)}</span>
+                        <span class="menu-badge ${item.periodo === 0 ? 'menu-badge-almoco' : 'menu-badge-jantar'}">
+                            ${item.periodo === 0 ? 'Almoço' : 'Jantar'}
+                        </span>
+                    </div>
+                </div>
+            `).join('') : '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text3);">Nenhum prato para este período</div>';
+        }
+
+        window.selectSugestaoItem = function(id, periodo) {
+            document.querySelectorAll('#sugestaoItemGrid .menu-item-card').forEach(el => el.classList.remove('selected'));
+            const card = document.getElementById(`sg-item-${id}`);
+            if (card) card.classList.add('selected');
+            document.getElementById('sugestaoItemId').value = id;
+        };
+
+        const periodoSelect = document.getElementById('sugestaoPeriodo');
+        periodoSelect.addEventListener('change', () => renderItemGrid(periodoSelect.value));
+        renderItemGrid(periodoSelect.value);
 
         openModal('modalNovaSugestao');
 

@@ -57,12 +57,6 @@ public class CardapioService
 
     public async Task<ItemCardapio> CriarItemAsync(ItemCardapioDto dto)
     {
-        var contePorPeriodo = await _context.ItensCardapio
-            .CountAsync(i => i.Periodo == dto.Periodo);
-
-        if (contePorPeriodo >= 20)
-            throw new InvalidOperationException($"O cardápio já possui 20 itens para o período {dto.Periodo}.");
-
         var ingredientes = await _context.Ingredientes
             .Where(i => dto.IngredienteIds.Contains(i.Id))
             .ToListAsync();
