@@ -18,7 +18,7 @@ Sistema de gestão completo para restaurantes, desenvolvido como projeto acadêm
 | **Disciplina**     | Tópicos III                          |
 | **Professor**       | Jose Itamar Mendes de Souza Junior   |
 | **Aluno**          | Filipe Ferreira                       |
-| **Tecnologia**     | C# .NET 8.0                          |
+| **Tecnologia**     | C# .NET 10.0                          |
 
 ---
 
@@ -67,10 +67,10 @@ Sistema de gestão completo para restaurantes, desenvolvido como projeto acadêm
 ## Tecnologias Utilizadas
 
 ### Backend
-- **.NET 8.0** - Framework principal
+- **.NET 10.0** - Framework principal
 - **ASP.NET Core Web API** - API RESTful
-- **Entity Framework Core 8.0** - ORM para acesso ao banco de dados
-- **SQL Server 2022** - Banco de dados relacional
+- **Entity Framework Core 10.0** - ORM para acesso ao banco de dados
+- **SQL Server** - Banco de dados relacional
 - **JWT Authentication** - Sistema de autenticação
 
 ### Frontend
@@ -122,10 +122,10 @@ A1_order_system/
 ## Configuração e Execução
 
 ### Pré-requisitos
-- .NET 8.0 SDK
-- SQL Server (local ou container Docker)
-- Visual Studio 2022 ou VS Code
-
+- .NET 10.0 
+- SQL Server
+- - Visual Studio
+    
 ### Configuração do Banco de Dados
 
 Edite o arquivo `appsettings.json` com a string de conexão do seu SQL Server:
